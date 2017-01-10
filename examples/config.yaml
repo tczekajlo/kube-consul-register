@@ -1,0 +1,16 @@
+apiVersion: v1
+data:
+    consul_address: "localhost"
+    consul_port: "8500"
+    consul_scheme: "http"
+    consul_ca_file: ""
+    consul_cert_file: ""
+    consul_key_file: ""
+    consul_insecure_skip_verify: "false"
+    consul_container_name: "consul"
+    k8s_tag: "kubernetes"
+    register_mode: "single"
+kind: ConfigMap
+metadata:
+    name: kube-consul-register
+    namespace: default
