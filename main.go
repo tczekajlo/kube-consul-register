@@ -59,23 +59,26 @@ func main() {
 		kubeClientConfig, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	}
 	if err != nil {
-		panic(err.Error())
+		glog.Fatalf("Error configuring the client: %v", err.Error())
 	}
 	// creates the clientset for Kubernetes
 	clientset, err := kubernetes.NewForConfig(kubeClientConfig)
 	if err != nil {
-		panic(err.Error())
+		glog.Fatalf("Failed to create Kubernetes client: %v", err.Error())
 	}
 
 	if *configMap != "" {
 		namespace, name, err := utils.ParseNsName(*configMap)
 		if err != nil {
-			glog.Fatalf("configmap error: %v", err)
+			glog.Fatalf("ConfigMap: %v", err)
 		}
 
+	load_config:
 		cfg, err = config.Load(clientset, namespace, name)
 		if err != nil {
-			glog.Errorf("can't load configuration: %v", err)
+			glog.Errorf("Unable to load configuration: %v", err)
+			time.Sleep(10 * time.Second)
+			goto load_config
 		}
 
 		glog.Infof("Current configuration: Controller: %#v, Consul: %#v", cfg.Controller, cfg.Consul)
@@ -95,7 +98,7 @@ func main() {
 			glog.Info("Start cleaning...")
 			err := ctr.Clean()
 			if err != nil {
-				glog.Errorf("Can't cleaning services: %s", err)
+				glog.Errorf("Unable to cleaning to inactive services: %s", err)
 			} else {
 				glog.Info("Cleaning has been ended")
 			}
@@ -111,7 +114,7 @@ func main() {
 			glog.Info("Start syncing...")
 			err := ctr.Sync()
 			if err != nil {
-				glog.Errorf("Can't syncing PODs: %s", err)
+				glog.Errorf("Unable to syncing PODs: %s", err)
 			} else {
 				glog.Info("Synchronization's been ended")
 			}

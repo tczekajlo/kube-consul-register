@@ -54,7 +54,7 @@ func Load(clientset *kubernetes.Clientset, namespace string, name string) (*Conf
 
 	cfg, err := clientset.Core().ConfigMaps(namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		return config, fmt.Errorf("Can't get ConfigMap: %s", err.Error())
+		return config, fmt.Errorf(err.Error())
 	}
 
 	filledConfig, err = config.fillConfig(cfg.Data)
