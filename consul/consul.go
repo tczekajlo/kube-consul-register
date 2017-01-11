@@ -40,7 +40,7 @@ func (f *Factory) New(cfg *config.Config, podNodeName string, podIP string) Fact
 	if uri.Scheme == "consul-unix" {
 		cfg.Consul.Address = strings.TrimPrefix(uri.String(), "consul-")
 
-	} else if uri.Scheme == "consul-tls" {
+	} else if uri.Scheme == "https" {
 		tlsConfigDesc := &consulapi.TLSConfig{
 			Address:            uri.Host,
 			CAFile:             cfg.Controller.ConsulCAFile,
@@ -52,7 +52,7 @@ func (f *Factory) New(cfg *config.Config, podNodeName string, podIP string) Fact
 		if err != nil {
 			glog.Fatalf("Cannot set up Consul TLSConfig: %s", err)
 		}
-		cfg.Consul.Scheme = "https"
+		cfg.Consul.Scheme = uri.Scheme
 		transport := cleanhttp.DefaultPooledTransport()
 		transport.TLSClientConfig = tlsConfig
 		cfg.Consul.HttpClient.Transport = transport
