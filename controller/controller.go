@@ -316,7 +316,7 @@ func (p *PodInfo) PodToConsulService(containerStatus v1.ContainerStatus, cfg *co
 		if found {
 			service.Name = reference.Reference.Name
 		} else {
-			return service, fmt.Errorf("Can't determine name of service for POD %s in %s namespace", p.Name, p.Namespace)
+			service.Name = p.Name
 		}
 	}
 
