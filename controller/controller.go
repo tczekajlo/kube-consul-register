@@ -91,7 +91,7 @@ func (c *Controller) cacheConsulAgent() (map[string]consul.FactoryAdapter, error
 
 // Clean checks Consul services and remove them if service dosen't appear in K8S cluster
 func (c *Controller) Clean() error {
-	var consulAgents = make(map[string]consul.FactoryAdapter)
+	var consulAgents map[string]consul.FactoryAdapter
 	var podsInCluster []*PodInfo
 	var err error
 
@@ -148,11 +148,11 @@ func (c *Controller) Clean() error {
 			err := consulAgents[consulAgentID].Deregister(service)
 			if err != nil {
 				glog.Errorf("Can't deregister service: %s", err)
-			} else {
-				glog.Infof("Service's been deregistered, ID: %s", service.ID)
-				glog.V(2).Infof("%#v", service)
-				delete(addedConsulServices, service.ID)
+				continue
 			}
+			glog.Infof("Service's been deregistered, ID: %s", service.ID)
+			glog.V(2).Infof("%#v", service)
+			delete(addedConsulServices, service.ID)
 		}
 	}
 	c.mutex.Unlock()
