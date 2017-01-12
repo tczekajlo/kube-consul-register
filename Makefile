@@ -44,5 +44,8 @@ check: check-deps test format
 	cd $(SOURCEDIR)/consul; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo
 	cd $(SOURCEDIR)/utils; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo
 
+vendor:
+	glide install --strip-vendor
+
 format:
 	goimports -w -l $(APP_SOURCES)
