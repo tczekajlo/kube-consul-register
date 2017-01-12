@@ -2,6 +2,7 @@ SHELL := /bin/bash
 
 PREFIX = kube-consul-register
 
+PACKAGES = $(shell go list ./... | grep -v /vendor/)
 TESTARGS ?= -race
 
 CURRENTDIR = $(shell pwd)
@@ -30,22 +31,15 @@ dist/kube-consul-controller: check
 docker:
 	docker build -t $(PREFIX):$(VERSION) .
 
-test:
-	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/controller
-	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/config
-	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/consul
-	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/utils
+$(PACKAGES): check-deps format
+	go test $(TESTARGS) $@
 
 check-deps:
 	@which gometalinter > /dev/null || \
 	(go get github.com/alecthomas/gometalinter && gometalinter --install)
 
-check: check-deps test format
-	gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo
-	cd $(SOURCEDIR)/config; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo
-	cd $(SOURCEDIR)/controller; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo
-	cd $(SOURCEDIR)/consul; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo
-	cd $(SOURCEDIR)/utils; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo
+check: $(PACKAGES)
+	gometalinter . --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gas -D golint -D errcheck
 
 vendor:
 	glide install --strip-vendor

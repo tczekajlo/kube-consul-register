@@ -61,6 +61,8 @@ The `register_mode` option determine to which Consul Agent a services should be 
 
 ### Annotations
 There are available annotations which can be used as pod's annotations.
+
+
 |Name|Value|Description|
 |----|-----|-----------|
 |`consul.regiser/enabled`|`true`\|`false`|Determine if pod should be registered in Consul. This annotation is require in order to register pod as Consul service|
@@ -69,8 +71,12 @@ There are available annotations which can be used as pod's annotations.
 The example of how to use annotation you can see [here](https://github.com/tczekajlo/kube-consul-register/blob/master/examples/nginx.yaml).
 
 ## Examples of usage
-Run out-of-cluster
+### Run out-of-cluster
 
 ```
 $ kube-consul-register -logtostderr=true -kubeconfig=/my/kubeconfig -configmap="default/kube-consul-register" -in-cluster=false
 ```
+
+### Run in-cluster
+
+Example of usage in-cluster you can find [here](https://github.com/tczekajlo/kube-consul-register/blob/master/examples/rs.yaml). `kube-consul-register` is run as ReplicaSet.
