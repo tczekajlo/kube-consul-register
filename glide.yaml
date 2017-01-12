@@ -1,4 +1,4 @@
-package: .
+package: github.com/tczekajlo/kube-consul-register
 import:
 - package: github.com/golang/glog
 - package: github.com/hashicorp/consul

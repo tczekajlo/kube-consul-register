@@ -31,7 +31,10 @@ docker:
 	docker build -t $(PREFIX):$(VERSION) .
 
 test:
-	go test $(TESTARGS) ./...
+	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/controller
+	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/config
+	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/consul
+	go test $(TESTARGS) github.com/tczekajlo/kube-consul-register/utils
 
 check-deps:
 	@which gometalinter > /dev/null || \

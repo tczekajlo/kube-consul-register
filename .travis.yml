@@ -4,8 +4,13 @@ go:
   - 1.7
   - master
 
+before_install:
+  - mkdir $GOPATH/bin
+
 install:
   - go get github.com/stretchr/testify/assert
-  - go get ./...
+  - curl https://glide.sh/get | sh
 
-script: make check
+script:
+  - make vendor
+  - make check

@@ -1,5 +1,5 @@
-hash: ddf68ae898bd95dfbcb374e94098a6dac9aeab1157deb837abc9415467322e2d
-updated: 2017-01-12T16:29:35.665931819+01:00
+hash: 1e7d8b55aec727771897aa41e991536cab075f5741c99c61d3c0405e9c6d811c
+updated: 2017-01-12T19:42:25.520666371+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -89,13 +89,6 @@ imports:
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/spf13/pflag
   version: 5ccb023bc27df288a957c5e994cd44fd19619465
-- name: github.com/tczekajlo/kube-consul-register
-  version: 98d1be62197b5f9da16b128595ac0638e21fcfe5
-  subpackages:
-  - config
-  - consul
-  - controller
-  - utils
 - name: github.com/ugorji/go
   version: f1f1a805ed361a0e078bb537e4ea78cd37dcf065
   subpackages:
