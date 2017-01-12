@@ -10,12 +10,12 @@ import (
 func TestParseNsName(t *testing.T) {
 	t.Parallel()
 
-	namespace, configMapName, err := ParseNsName("default/test")
+	namespace, configMapName, _ := ParseNsName("default/test")
 	assert.Equal(t, "default", namespace, "they should be equal")
 	assert.Equal(t, "test", configMapName, "they should be equal")
 
 	input := "default_test"
-	_, _, err = ParseNsName("default_test")
+	_, _, err := ParseNsName("default_test")
 	expectError := fmt.Errorf("invalid format (namespace/name) found in '%v'", input)
 
 	assert.Error(t, err, expectError, "an error was expected")
