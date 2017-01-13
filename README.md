@@ -1,4 +1,4 @@
-# Kubernetes Consul Register
+# Kubernetes Consul Register [![Build Status](https://travis-ci.org/tczekajlo/kube-consul-register.svg?branch=master)](https://travis-ci.org/tczekajlo/kube-consul-register)
 The kube-consul-register is a tool to register Kubernetes PODs as Consul Services.
 
 kube-consul-register watches Kubernetes events and converts information about PODs to Consul Agent.
