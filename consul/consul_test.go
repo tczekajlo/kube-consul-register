@@ -23,7 +23,7 @@ func TestNew(t *testing.T) {
 		Consul: consulapi.DefaultConfig(),
 	}
 
-	consulInstance := Factory{}
+	consulInstance := Adapter{}
 	consulInstance.New(cfg, "pod_name", "127.0.0.1")
 
 	assert.Equal(t, "localhost:8500", cfg.Consul.Address, "wrong URI")
@@ -71,7 +71,7 @@ func TestConsulAdapterMethods(t *testing.T) {
 		Consul: consulapi.DefaultConfig(),
 	}
 
-	consulInstance := Factory{}
+	consulInstance := Adapter{}
 	consulAgent := consulInstance.New(cfg, "pod_name", "127.0.0.1")
 
 	err = consulAgent.Register(&consulapi.AgentServiceRegistration{})

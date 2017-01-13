@@ -85,7 +85,7 @@ func main() {
 	}
 
 	//Consul instance
-	consulInstance := consul.Factory{}
+	consulInstance := consul.Adapter{}
 
 	//Controller instance
 	ctrInstance := controller.Factory{}

@@ -33,13 +33,13 @@ docker:
 
 $(PACKAGES): check-deps format
 	go test $(TESTARGS) $@
+	cd $(GOPATH)/src/$@; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gas -D errcheck
 
 check-deps:
 	@which gometalinter > /dev/null || \
 	(go get github.com/alecthomas/gometalinter && gometalinter --install)
 
 check: $(PACKAGES)
-	gometalinter . --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gas -D golint -D errcheck
 
 vendor:
 	glide install --strip-vendor
