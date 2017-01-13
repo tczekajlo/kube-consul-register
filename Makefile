@@ -24,7 +24,7 @@ build: dist/kube-consul-controller
 clean:
 	rm -rf dist vendor
 
-dist/kube-consul-controller: check
+dist/kube-consul-controller:
 	mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=linux go build $(LD_FLAGS) -v -o dist/kube-consul-register
 

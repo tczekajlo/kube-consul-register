@@ -32,7 +32,7 @@ var (
 
 	watchNamespace  = flag.String("watch-namespace", v1.NamespaceAll, "namespace to watch for Pods. Default is to watch all namespaces")
 	kubeconfig      = flag.String("kubeconfig", "./kubeconfig", "absolute path to the kubeconfig file")
-	configMap       = flag.String("configmap", "", "name of the ConfigMap that containes the custom configuration to use")
+	configMap       = flag.String("configmap", "default/kube-consul-register-config", "name of the ConfigMap that containes the custom configuration to use")
 	inClusterConfig = flag.Bool("in-cluster", true, "use in-cluster config. Use always in case when controller is running on Kubernetes cluster")
 	syncInterval    = flag.Duration("sync-interval", 120*time.Second, "time in seconds, what period of time will be done synchronization")
 	cleanInterval   = flag.Duration("clean-interval", 1800*time.Second, "time in seconds, what period of time will be done cleaning of inactive services")
