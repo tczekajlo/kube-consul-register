@@ -42,14 +42,14 @@ type Factory struct{}
 // Controller describes the attributes that are uses by Controller
 type Controller struct {
 	clientset      *kubernetes.Clientset
-	consulInstance consul.Factory
+	consulInstance consul.Adapter
 	cfg            *config.Config
 	namespace      string
 	mutex          *sync.Mutex
 }
 
 // New creates an instance of controller
-func (f *Factory) New(clientset *kubernetes.Clientset, consulInstance consul.Factory, cfg *config.Config, namespace string) FactoryAdapter {
+func (f *Factory) New(clientset *kubernetes.Clientset, consulInstance consul.Adapter, cfg *config.Config, namespace string) FactoryAdapter {
 	return &Controller{
 		clientset:      clientset,
 		consulInstance: consulInstance,
@@ -58,8 +58,8 @@ func (f *Factory) New(clientset *kubernetes.Clientset, consulInstance consul.Fac
 		mutex:          &sync.Mutex{}}
 }
 
-func (c *Controller) cacheConsulAgent() (map[string]consul.FactoryAdapter, error) {
-	var consulAgents = make(map[string]consul.FactoryAdapter)
+func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
+	var consulAgents = make(map[string]*consul.Adapter)
 	//Cache Consul's Agents
 	if c.cfg.Controller.RegisterMode == config.RegisterSingleMode {
 		consulAgent := c.consulInstance.New(c.cfg, "", "")
@@ -91,7 +91,7 @@ func (c *Controller) cacheConsulAgent() (map[string]consul.FactoryAdapter, error
 
 // Clean checks Consul services and remove them if service dosen't appear in K8S cluster
 func (c *Controller) Clean() error {
-	var consulAgents map[string]consul.FactoryAdapter
+	var consulAgents map[string]*consul.Adapter
 	var podsInCluster []*PodInfo
 	var err error
 
@@ -207,7 +207,7 @@ func (c *Controller) Watch() {
 	controller.Run(stop)
 }
 
-func eventDeleteFunc(obj interface{}, consulInstance consul.Factory, cfg *config.Config) error {
+func eventDeleteFunc(obj interface{}, consulInstance consul.Adapter, cfg *config.Config) error {
 	podInfo := &PodInfo{}
 	podInfo.save(obj)
 
@@ -241,7 +241,7 @@ func eventDeleteFunc(obj interface{}, consulInstance consul.Factory, cfg *config
 	return nil
 }
 
-func eventUpdateFunc(obj interface{}, consulInstance consul.Factory, cfg *config.Config) error {
+func eventUpdateFunc(obj interface{}, consulInstance consul.Adapter, cfg *config.Config) error {
 	podInfo := &PodInfo{}
 	podInfo.save(obj)
 

@@ -12,11 +12,13 @@ import (
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 )
 
-// Factory has a method to return a FactoryAdapter.
-type Factory struct{}
+// Adapter builds configuration and returns Consul Client
+type Adapter struct {
+	client *consulapi.Client
+}
 
 // New returns the ConsulAdapter.
-func (f *Factory) New(cfg *config.Config, podNodeName string, podIP string) FactoryAdapter {
+func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Adapter {
 	var address string
 
 	//Build URI
@@ -66,28 +68,25 @@ func (f *Factory) New(cfg *config.Config, podNodeName string, podIP string) Fact
 	if err != nil {
 		glog.Fatalf("consul: %s", uri.Scheme)
 	}
-	return &ConsulAdapter{client: client}
-}
 
-// ConsulAdapter returns Consul Client.
-type ConsulAdapter struct {
-	client *consulapi.Client
+	c.client = client
+	return c
 }
 
 // Register registers new service in Consul
-func (r *ConsulAdapter) Register(service *consulapi.AgentServiceRegistration) error {
+func (c *Adapter) Register(service *consulapi.AgentServiceRegistration) error {
 	glog.V(1).Infof("Registering service %s with ID: %s", service.Name, service.ID)
-	return r.client.Agent().ServiceRegister(service)
+	return c.client.Agent().ServiceRegister(service)
 }
 
 // Deregister deregisters a service in Consul
-func (r *ConsulAdapter) Deregister(service *consulapi.AgentServiceRegistration) error {
+func (c *Adapter) Deregister(service *consulapi.AgentServiceRegistration) error {
 	glog.V(1).Infof("Deregistering service with ID: %s", service.ID)
-	return r.client.Agent().ServiceDeregister(service.ID)
+	return c.client.Agent().ServiceDeregister(service.ID)
 }
 
 // Services returns all services from a Consul Agent
-func (r *ConsulAdapter) Services() (map[string]*consulapi.AgentService, error) {
+func (c *Adapter) Services() (map[string]*consulapi.AgentService, error) {
 	glog.V(1).Info("Getting Consul services")
-	return r.client.Agent().Services()
+	return c.client.Agent().Services()
 }
