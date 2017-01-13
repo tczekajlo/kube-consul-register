@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: kube-consul-register
-        image: kube-consul-register:0.1.0
+        image: tczekajlo/kube-consul-register:0.1.0
         resources:
           requests:
             cpu: 1
