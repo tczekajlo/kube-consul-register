@@ -10,7 +10,7 @@ kube-consul-register watches Kubernetes events and converts information about PO
   -clean-interval duration
         time in seconds, what period of time will be done cleaning of inactive services (default 30m0s)
   -configmap string
-        name of the ConfigMap that containes the custom configuration to use
+        name of the ConfigMap that containes the custom configuration to use (default "default/kube-consul-register-config")
   -in-cluster
         use in-cluster config. Use always in case when controller is running on Kubernetes cluster (default true)
   -kubeconfig string
@@ -38,7 +38,7 @@ kube-consul-register watches Kubernetes events and converts information about PO
 ## Configuration
 The store configuration is uses [ConfigMap](https://github.com/kubernetes/kubernetes/blob/master/docs/design/configmap.md).
 You can find [example of configuration](https://github.com/tczekajlo/kube-consul-register/blob/master/examples/config.yaml) with default values in examples directory.
-In order to use ConfigMap configuration you've to use `configmap` flag. Value of this flag has format `namespace/configmap_nam`, e.g. `-configmap="default/kube-consul-register-config"`.
+In order to use ConfigMap configuration you've to use `configmap` flag. Value of this flag has format `namespace/configmap_name`, e.g. `-configmap="default/kube-consul-register-config"`.
 
 | Option name | Default value | Description |
 |-------------|---------------|-------------|
