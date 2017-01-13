@@ -12,11 +12,11 @@ spec:
       containers:
       - name: kube-consul-register
         image: tczekajlo/kube-consul-register:0.1.0
+        imagePullPolicy: Always
         resources:
           requests:
             cpu: 1
             memory: 300Mi
         args:
         - -logtostderr=true
-        - -in-cluster=true
         - -configmap="default/kube-consul-register"
