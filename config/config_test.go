@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,8 @@ func TestFillConfigDefaults(t *testing.T) {
 	assert.Equal(t, cfg.Controller.ConsulKeyFile, "", "wrong default value for `consul_key_file` option")
 	assert.Equal(t, cfg.Controller.ConsulCertFile, "", "wrong default value for `consul_cert_file` option")
 	assert.Equal(t, cfg.Controller.ConsulInsecureSkipVerify, false, "wrong default value for `consul_insecure_skip_verify` option")
+	assert.Equal(t, cfg.Controller.ConsulToken, "", "wrong default value for `consul_token` option")
+	assert.Equal(t, cfg.Controller.ConsulTimeout, 2*time.Second, "wrong default value for `consul_timeout` option")
 	assert.Equal(t, cfg.Controller.ConsulContainerName, "consul", "wrong default value for `consul_container_name` option")
 	assert.Equal(t, cfg.Controller.K8sTag, "kubernetes", "wrong default value for `k8s_tag` option")
 	assert.Equal(t, cfg.Controller.RegisterMode, RegisterSingleMode, "wrong default value for `register_mode` option")
@@ -57,6 +60,8 @@ func TestFillConfig(t *testing.T) {
 	data["consul_key_file"] = "key.pem"
 	data["consul_cert_file"] = "cert.pem"
 	data["consul_insecure_skip_verify"] = "true"
+	data["consul_token"] = "token"
+	data["consul_timeout"] = "10s"
 	data["consul_container_name"] = "name"
 	data["k8s_tag"] = "k8s"
 	data["register_mode"] = "node"
@@ -70,6 +75,8 @@ func TestFillConfig(t *testing.T) {
 	assert.Equal(t, cfg.Controller.ConsulKeyFile, "key.pem", "they should be equal")
 	assert.Equal(t, cfg.Controller.ConsulCertFile, "cert.pem", "they should be equal")
 	assert.Equal(t, cfg.Controller.ConsulInsecureSkipVerify, true, "they should be equal")
+	assert.Equal(t, cfg.Controller.ConsulToken, "token", "they should be equal")
+	assert.Equal(t, cfg.Controller.ConsulTimeout, time.Duration(10*time.Second), "they should be equal")
 	assert.Equal(t, cfg.Controller.ConsulContainerName, "name", "they should be equal")
 	assert.Equal(t, cfg.Controller.K8sTag, "k8s", "they should be equal")
 	assert.Equal(t, cfg.Controller.RegisterMode, RegisterNodeMode, "they should be equal")

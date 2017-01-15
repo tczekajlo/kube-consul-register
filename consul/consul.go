@@ -39,10 +39,11 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 		glog.Fatalf("bad adapter uri: ")
 	}
 
-	if uri.Scheme == "consul-unix" {
+	switch uri.Scheme {
+	case "consul-unix":
 		cfg.Consul.Address = strings.TrimPrefix(uri.String(), "consul-")
 
-	} else if uri.Scheme == "https" {
+	case "https":
 		tlsConfigDesc := &consulapi.TLSConfig{
 			Address:            uri.Host,
 			CAFile:             cfg.Controller.ConsulCAFile,
@@ -60,9 +61,17 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 		cfg.Consul.HttpClient.Transport = transport
 		cfg.Consul.Address = uri.Host
 
-	} else if uri.Host != "" {
+	default:
 		cfg.Consul.Address = uri.Host
 	}
+
+	// Add Token
+	if cfg.Controller.ConsulToken != "" {
+		cfg.Consul.Token = cfg.Controller.ConsulToken
+	}
+
+	//Timeout
+	cfg.Consul.HttpClient.Timeout = cfg.Controller.ConsulTimeout
 
 	client, err := consulapi.NewClient(cfg.Consul)
 	if err != nil {

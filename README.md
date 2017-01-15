@@ -49,6 +49,8 @@ In order to use ConfigMap configuration you've to use `configmap` flag. Value of
 |`consul_cert_file`|| Path to an SSL client certificate to use to authenticate to the Consul server|
 |`consul_key_file`|| Path to an SSL client certificate key to use to authenticate to the Consul server|
 |`consul_insecure_skip_verify`|`false`| Skip verifying certificates when connecting via SSL|
+|`consul_token`|| The Consul ACL token. Token is used to provide a per-request ACL token hich overrides the agent's default token|
+|`consul_timeout`|`2s`| Time limit for requests made by the Consul HTTP client. A Timeout of zero means no timeout|
 |`consul_container_name`|`consul`| The name of container in POD with Consul Agent. The container with given name will be skip and not registered in Consul. This options is taken into account only if `register_mode` is set to `pod`|
 |`k8s_tag`|`kubernetes`| The name of tag which is added to every Consul Service. This tag idetifies all Consul Serivces which has been registered by kube-consul-register|
 |`register_mode`|`single`| The mode of register. Available options: `single`, `pod`, `node`|

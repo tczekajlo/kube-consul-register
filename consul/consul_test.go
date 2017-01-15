@@ -2,6 +2,7 @@ package consul
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -18,6 +19,7 @@ func TestNew(t *testing.T) {
 			ConsulAddress: "localhost",
 			ConsulPort:    "8500",
 			ConsulScheme:  "http",
+			ConsulToken:   "token",
 			RegisterMode:  config.RegisterSingleMode,
 		},
 		Consul: consulapi.DefaultConfig(),
@@ -26,8 +28,16 @@ func TestNew(t *testing.T) {
 	consulInstance := Adapter{}
 	consulInstance.New(cfg, "pod_name", "127.0.0.1")
 
-	assert.Equal(t, "localhost:8500", cfg.Consul.Address, "wrong URI")
-	assert.Equal(t, "http", cfg.Consul.Scheme, "wrong scheme")
+	assert.Equal(t, cfg.Consul.Address, "localhost:8500", "wrong URI")
+	assert.Equal(t, cfg.Consul.Scheme, "http", "wrong scheme")
+	assert.Equal(t, cfg.Consul.Token, "token", "wrong token")
+	assert.Equal(t, cfg.Consul.HttpClient.Timeout, time.Duration(0), "wrong timeout")
+
+	// Tests Consul Timeout
+	cfg.Controller.ConsulTimeout = time.Duration(1 * time.Second)
+	consulInstance.New(cfg, "pod_name", "127.0.0.1")
+
+	assert.Equal(t, cfg.Consul.HttpClient.Timeout, time.Duration(1*time.Second), "wrong timeout")
 
 	// Tests RegisterNodeMode
 	cfg.Controller.RegisterMode = config.RegisterNodeMode

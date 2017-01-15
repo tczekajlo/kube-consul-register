@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/golang/glog"
 	consulapi "github.com/hashicorp/consul/api"
@@ -40,6 +41,8 @@ type ControllerConfig struct {
 	ConsulCertFile           string
 	ConsulKeyFile            string
 	ConsulInsecureSkipVerify bool
+	ConsulToken              string
+	ConsulTimeout            time.Duration
 	ConsulContainerName      string
 	K8sTag                   string
 	RegisterMode             RegisterMode
@@ -89,20 +92,14 @@ func (c *Config) fillConfig(data map[string]string) (*Config, error) {
 
 	if value, ok := data["consul_ca_file"]; ok {
 		c.Controller.ConsulCAFile = value
-	} else {
-		c.Controller.ConsulCAFile = ""
 	}
 
 	if value, ok := data["consul_cert_file"]; ok {
 		c.Controller.ConsulCertFile = value
-	} else {
-		c.Controller.ConsulCertFile = ""
 	}
 
 	if value, ok := data["consul_key_file"]; ok {
 		c.Controller.ConsulKeyFile = value
-	} else {
-		c.Controller.ConsulKeyFile = ""
 	}
 
 	if value, ok := data["consul_insecure_skip_verify"]; ok && value != "" {
@@ -113,6 +110,20 @@ func (c *Config) fillConfig(data map[string]string) (*Config, error) {
 		c.Controller.ConsulInsecureSkipVerify = v
 	} else {
 		c.Controller.ConsulInsecureSkipVerify = false
+	}
+
+	if value, ok := data["consul_token"]; ok && value != "" {
+		c.Controller.ConsulToken = value
+	}
+
+	if value, ok := data["consul_timeout"]; ok && value != "" {
+		timeout, err := time.ParseDuration(value)
+		if err != nil {
+			return c, err
+		}
+		c.Controller.ConsulTimeout = timeout
+	} else {
+		c.Controller.ConsulTimeout = time.Duration(2 * time.Second)
 	}
 
 	if value, ok := data["consul_container_name"]; ok && value != "" {
