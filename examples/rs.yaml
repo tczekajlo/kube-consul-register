@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: kube-consul-register
-        image: tczekajlo/kube-consul-register:0.1.0
+        image: tczekajlo/kube-consul-register:0.1.1
         imagePullPolicy: Always
         resources:
           requests:
@@ -19,4 +19,4 @@ spec:
             memory: 300Mi
         args:
         - -logtostderr=true
-        - -configmap="default/kube-consul-register"
+        - -configmap=default/kube-consul-register
