@@ -396,8 +396,8 @@ func (p *PodInfo) labelsToTags(containerName string) []string {
 	tags = append(tags, fmt.Sprintf("node:%s", p.NodeName))
 	tags = append(tags, fmt.Sprintf("container:%s", containerName))
 
-	for key := range p.Labels {
-		tags = append(tags, key)
+	for key, value := range p.Labels {
+		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
 	}
 	return tags
 }
