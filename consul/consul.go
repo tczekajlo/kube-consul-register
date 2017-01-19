@@ -1,6 +1,7 @@
 package consul
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/url"
 	"strings"
@@ -20,6 +21,9 @@ type Adapter struct {
 // New returns the ConsulAdapter.
 func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Adapter {
 	var address string
+	var err error
+	var uri *url.URL
+	var tlsConfig *tls.Config
 
 	//Build URI
 	switch mode := cfg.Controller.RegisterMode; mode {
@@ -34,7 +38,7 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 			cfg.Controller.ConsulScheme, podIP, cfg.Controller.ConsulPort)
 	}
 
-	uri, err := url.Parse(address)
+	uri, err = url.Parse(address)
 	if err != nil {
 		glog.Fatalf("bad adapter uri: ")
 	}
@@ -51,7 +55,7 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 			KeyFile:            cfg.Controller.ConsulKeyFile,
 			InsecureSkipVerify: cfg.Controller.ConsulInsecureSkipVerify,
 		}
-		tlsConfig, err := consulapi.SetupTLSConfig(tlsConfigDesc)
+		tlsConfig, err = consulapi.SetupTLSConfig(tlsConfigDesc)
 		if err != nil {
 			glog.Fatalf("Cannot set up Consul TLSConfig: %s", err)
 		}

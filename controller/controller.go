@@ -33,7 +33,9 @@ var (
 	addedPods           = make(map[types.UID]bool)
 	addedContainers     = make(map[string]bool)
 	addedServices       = make(map[string]bool)
-	addedConsulServices = make(map[string]string)
+	addedConsulServices map[string]string
+
+	consulAgents map[string]*consul.Adapter
 )
 
 // Factory has a method to return a FactoryAdapter
@@ -59,7 +61,7 @@ func (f *Factory) New(clientset *kubernetes.Clientset, consulInstance consul.Ada
 }
 
 func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
-	var consulAgents = make(map[string]*consul.Adapter)
+	consulAgents = make(map[string]*consul.Adapter)
 	//Cache Consul's Agents
 	if c.cfg.Controller.RegisterMode == config.RegisterSingleMode {
 		consulAgent := c.consulInstance.New(c.cfg, "", "")
@@ -91,7 +93,6 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 
 // Clean checks Consul services and remove them if service dosen't appear in K8S cluster
 func (c *Controller) Clean() error {
-	var consulAgents map[string]*consul.Adapter
 	var podsInCluster []*PodInfo
 	var err error
 
@@ -99,21 +100,15 @@ func (c *Controller) Clean() error {
 
 	consulAgents, err = c.cacheConsulAgent()
 	if err != nil {
+		c.mutex.Unlock()
 		return fmt.Errorf("Can't cache Consul' Agents: %s", err)
 	}
 
-	// Make list of Consul's services
-	for consulAgentID, consulAgent := range consulAgents {
-		services, err := consulAgent.Services()
-		if err != nil {
-			glog.Errorf("Can't get services from Consul Agent, register mode=%s: %s", c.cfg.Controller.RegisterMode, err)
-		} else {
-			for _, service := range services {
-				if utils.CheckK8sTag(service.Tags, c.cfg.Controller.K8sTag) {
-					addedConsulServices[service.ID] = consulAgentID
-				}
-			}
-		}
+	// Get list of added Consul' services
+	addedConsulServices, err := c.getAddedConsulServices()
+	if err != nil {
+		c.mutex.Unlock()
+		return err
 	}
 
 	// Make list of Kubernetes' PODs
@@ -161,7 +156,22 @@ func (c *Controller) Clean() error {
 
 // Sync synchronizes services between Consul and K8S cluster
 func (c *Controller) Sync() error {
+	var err error
 	c.mutex.Lock()
+
+	consulAgents, err = c.cacheConsulAgent()
+	if err != nil {
+		c.mutex.Unlock()
+		return fmt.Errorf("Can't cache Consul' Agents: %s", err)
+	}
+
+	// Get list of added Consul' services
+	addedConsulServices, err := c.getAddedConsulServices()
+	if err != nil {
+		c.mutex.Unlock()
+		return err
+	}
+
 	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{})
 	if err != nil {
 		c.mutex.Unlock()
@@ -169,7 +179,23 @@ func (c *Controller) Sync() error {
 	}
 
 	for _, pod := range pods.Items {
-		eventUpdateFunc(&pod, c.consulInstance, c.cfg)
+		podInfo := &PodInfo{}
+		podInfo.save(&pod)
+
+		// If miss or consul.register/enabled annotation is set on `false` then skip pod
+		if !podInfo.isRegisterEnabled() {
+			continue
+		}
+
+		for _, container := range podInfo.ContainerStatuses {
+			serviceID := fmt.Sprintf("%s-%s", podInfo.Name, container.Name)
+			// If service does not appears in Consul's services then remove
+			// container from addedContainers map and call update.
+			if _, ok := addedConsulServices[serviceID]; !ok {
+				delete(addedContainers, container.ContainerID)
+				eventUpdateFunc(&pod, c.consulInstance, c.cfg)
+			}
+		}
 	}
 	c.mutex.Unlock()
 	return nil
@@ -205,6 +231,26 @@ func (c *Controller) Watch() {
 
 	stop := make(chan struct{})
 	controller.Run(stop)
+}
+
+// getAddedConsulServices returns the list of added Consul Services
+func (c *Controller) getAddedConsulServices() (map[string]string, error) {
+	var addedServices = make(map[string]string)
+
+	// Make list of Consul's services
+	for consulAgentID, consulAgent := range consulAgents {
+		services, err := consulAgent.Services()
+		if err != nil {
+			glog.Errorf("Can't get services from Consul Agent, register mode=%s: %s", c.cfg.Controller.RegisterMode, err)
+		} else {
+			for _, service := range services {
+				if utils.CheckK8sTag(service.Tags, c.cfg.Controller.K8sTag) {
+					addedServices[service.ID] = consulAgentID
+				}
+			}
+		}
+	}
+	return addedServices, nil
 }
 
 func eventDeleteFunc(obj interface{}, consulInstance consul.Adapter, cfg *config.Config) error {

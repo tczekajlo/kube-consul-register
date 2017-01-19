@@ -123,7 +123,7 @@ func (c *Config) fillConfig(data map[string]string) (*Config, error) {
 		}
 		c.Controller.ConsulTimeout = timeout
 	} else {
-		c.Controller.ConsulTimeout = time.Duration(2 * time.Second)
+		c.Controller.ConsulTimeout = 2 * time.Second
 	}
 
 	if value, ok := data["consul_container_name"]; ok && value != "" {
