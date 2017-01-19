@@ -36,7 +36,7 @@ kube-consul-register watches Kubernetes events and converts information about PO
 ```
 
 ## Configuration
-The store configuration is uses [ConfigMap](https://github.com/kubernetes/kubernetes/blob/master/docs/design/configmap.md).
+To store configuration is used [ConfigMap](https://github.com/kubernetes/kubernetes/blob/master/docs/design/configmap.md).
 You can find [example of configuration](https://github.com/tczekajlo/kube-consul-register/blob/master/examples/config.yaml) with default values in examples directory.
 In order to use ConfigMap configuration you've to use `configmap` flag. Value of this flag has format `namespace/configmap_name`, e.g. `-configmap="default/kube-consul-register-config"`.
 
