@@ -68,13 +68,14 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 		consulAgents[c.cfg.Controller.ConsulAddress] = consulAgent
 
 	} else if c.cfg.Controller.RegisterMode == config.RegisterNodeMode {
-		nodes, err := c.clientset.Core().Nodes().List(v1.ListOptions{})
+		nodes, err := c.clientset.Core().Nodes().List(v1.ListOptions{LabelSelector: c.cfg.Controller.ConsulNodeSelector})
 		if err != nil {
 			return consulAgents, err
 		}
 
 		for _, node := range nodes.Items {
-			consulAgent := c.consulInstance.New(c.cfg, node.ObjectMeta.Name, "")
+			consulInstance := consul.Adapter{}
+			consulAgent := consulInstance.New(c.cfg, node.ObjectMeta.Name, "")
 			consulAgents[node.ObjectMeta.Name] = consulAgent
 		}
 	} else if c.cfg.Controller.RegisterMode == config.RegisterPodMode {
@@ -83,7 +84,8 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 			return consulAgents, err
 		}
 		for _, pod := range pods.Items {
-			consulAgent := c.consulInstance.New(c.cfg, "", pod.Status.HostIP)
+			consulInstance := consul.Adapter{}
+			consulAgent := consulInstance.New(c.cfg, "", pod.Status.HostIP)
 			consulAgents[pod.Status.HostIP] = consulAgent
 		}
 	}
@@ -164,6 +166,7 @@ func (c *Controller) Sync() error {
 		c.mutex.Unlock()
 		return fmt.Errorf("Can't cache Consul' Agents: %s", err)
 	}
+	glog.V(2).Infof("Agents: %#v", consulAgents)
 
 	// Get list of added Consul' services
 	addedConsulServices, err := c.getAddedConsulServices()
@@ -171,6 +174,7 @@ func (c *Controller) Sync() error {
 		c.mutex.Unlock()
 		return err
 	}
+	glog.V(3).Infof("Added services: %#v", addedConsulServices)
 
 	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{})
 	if err != nil {
@@ -243,6 +247,7 @@ func (c *Controller) getAddedConsulServices() (map[string]string, error) {
 		if err != nil {
 			glog.Errorf("Can't get services from Consul Agent, register mode=%s: %s", c.cfg.Controller.RegisterMode, err)
 		} else {
+			glog.V(3).Infof("agent: %#v, services: %#v", consulAgentID, services)
 			for _, service := range services {
 				if utils.CheckK8sTag(service.Tags, c.cfg.Controller.K8sTag) {
 					addedServices[service.ID] = consulAgentID
