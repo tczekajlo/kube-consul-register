@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: kube-consul-register
-        image: tczekajlo/kube-consul-register:0.1.1
+        image: tczekajlo/kube-consul-register:0.1.3
         imagePullPolicy: Always
         resources:
           requests:
