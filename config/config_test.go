@@ -43,6 +43,7 @@ func TestFillConfigDefaults(t *testing.T) {
 	assert.Equal(t, cfg.Controller.ConsulTimeout, 2*time.Second, "wrong default value for `consul_timeout` option")
 	assert.Equal(t, cfg.Controller.ConsulContainerName, "consul", "wrong default value for `consul_container_name` option")
 	assert.Equal(t, cfg.Controller.ConsulNodeSelector, "consul=enabled", "wrong default value for `consul_node_selector` option")
+	assert.Equal(t, cfg.Controller.PodLabelSelector, "", "wrong default value for `pod_label_selector` option")
 	assert.Equal(t, cfg.Controller.K8sTag, "kubernetes", "wrong default value for `k8s_tag` option")
 	assert.Equal(t, cfg.Controller.RegisterMode, RegisterSingleMode, "wrong default value for `register_mode` option")
 }
@@ -65,6 +66,7 @@ func TestFillConfig(t *testing.T) {
 	data["consul_timeout"] = "10s"
 	data["consul_container_name"] = "name"
 	data["consul_node_selector"] = "selector=true"
+	data["pod_label_selector"] = "app=mycrazyapp"
 	data["k8s_tag"] = "k8s"
 	data["register_mode"] = "node"
 
@@ -81,6 +83,7 @@ func TestFillConfig(t *testing.T) {
 	assert.Equal(t, cfg.Controller.ConsulTimeout, time.Duration(10*time.Second), "they should be equal")
 	assert.Equal(t, cfg.Controller.ConsulContainerName, "name", "they should be equal")
 	assert.Equal(t, cfg.Controller.ConsulNodeSelector, "selector=true", "they should be equal")
+	assert.Equal(t, cfg.Controller.PodLabelSelector, "app=mycrazyapp", "they should be equal")
 	assert.Equal(t, cfg.Controller.K8sTag, "k8s", "they should be equal")
 	assert.Equal(t, cfg.Controller.RegisterMode, RegisterNodeMode, "they should be equal")
 

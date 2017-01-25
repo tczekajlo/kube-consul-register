@@ -11,6 +11,7 @@ data:
     consul_timeout: "2s"
     consul_container_name: "consul"
     consul_node_selector: "consul=enabled"
+    pod_label_selector: ""
     k8s_tag: "kubernetes"
     register_mode: "single"
 kind: ConfigMap

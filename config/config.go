@@ -45,6 +45,7 @@ type ControllerConfig struct {
 	ConsulTimeout            time.Duration
 	ConsulContainerName      string
 	ConsulNodeSelector       string
+	PodLabelSelector         string
 	K8sTag                   string
 	RegisterMode             RegisterMode
 }
@@ -137,6 +138,10 @@ func (c *Config) fillConfig(data map[string]string) (*Config, error) {
 		c.Controller.ConsulNodeSelector = value
 	} else {
 		c.Controller.ConsulNodeSelector = "consul=enabled"
+	}
+
+	if value, ok := data["pod_label_selector"]; ok && value != "" {
+		c.Controller.PodLabelSelector = value
 	}
 
 	if value, ok := data["k8s_tag"]; ok && value != "" {

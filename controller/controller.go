@@ -68,7 +68,9 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 		consulAgents[c.cfg.Controller.ConsulAddress] = consulAgent
 
 	} else if c.cfg.Controller.RegisterMode == config.RegisterNodeMode {
-		nodes, err := c.clientset.Core().Nodes().List(v1.ListOptions{LabelSelector: c.cfg.Controller.ConsulNodeSelector})
+		nodes, err := c.clientset.Core().Nodes().List(v1.ListOptions{
+			LabelSelector: c.cfg.Controller.ConsulNodeSelector,
+		})
 		if err != nil {
 			return consulAgents, err
 		}
@@ -79,7 +81,9 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 			consulAgents[node.ObjectMeta.Name] = consulAgent
 		}
 	} else if c.cfg.Controller.RegisterMode == config.RegisterPodMode {
-		pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{})
+		pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+			LabelSelector: c.cfg.Controller.PodLabelSelector,
+		})
 		if err != nil {
 			return consulAgents, err
 		}
@@ -114,7 +118,9 @@ func (c *Controller) Clean() error {
 	}
 
 	// Make list of Kubernetes' PODs
-	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{})
+	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+		LabelSelector: c.cfg.Controller.PodLabelSelector,
+	})
 	if err != nil {
 		c.mutex.Unlock()
 		return err
@@ -176,7 +182,9 @@ func (c *Controller) Sync() error {
 	}
 	glog.V(3).Infof("Added services: %#v", addedConsulServices)
 
-	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{})
+	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+		LabelSelector: c.cfg.Controller.PodLabelSelector,
+	})
 	if err != nil {
 		c.mutex.Unlock()
 		return err
@@ -221,11 +229,21 @@ func (c *Controller) Watch() {
 				glog.V(1).Infof("POD ADD: Name: %s, Namespace: %s, Phase: %s", podInfo.Name, podInfo.Namespace, podInfo.Phase)
 			},
 			DeleteFunc: func(obj interface{}) {
+				if !utils.HasLabel(obj.(*v1.Pod).ObjectMeta.Labels, c.cfg.Controller.PodLabelSelector) {
+					glog.V(1).Infof("Skip pod %s. Label selector is %s, pod's labels: %#v",
+						obj.(*v1.Pod).ObjectMeta.Name, c.cfg.Controller.PodLabelSelector, obj.(*v1.Pod).ObjectMeta.Labels)
+					return
+				}
 				c.mutex.Lock()
 				eventDeleteFunc(obj, c.consulInstance, c.cfg)
 				c.mutex.Unlock()
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
+				if !utils.HasLabel(newObj.(*v1.Pod).ObjectMeta.Labels, c.cfg.Controller.PodLabelSelector) {
+					glog.V(1).Infof("Skip pod %s. Label selector is %s, pod's labels: %#v",
+						newObj.(*v1.Pod).ObjectMeta.Name, c.cfg.Controller.PodLabelSelector, newObj.(*v1.Pod).ObjectMeta.Labels)
+					return
+				}
 				c.mutex.Lock()
 				eventUpdateFunc(newObj, c.consulInstance, c.cfg)
 				c.mutex.Unlock()

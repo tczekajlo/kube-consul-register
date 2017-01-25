@@ -53,6 +53,7 @@ In order to use ConfigMap configuration you've to use `configmap` flag. Value of
 |`consul_timeout`|`2s`| Time limit for requests made by the Consul HTTP client. A Timeout of zero means no timeout|
 |`consul_container_name`|`consul`| The name of container in POD with Consul Agent. The container with given name will be skip and not registered in Consul. This options is taken into account only if `register_mode` is set to `pod`|
 |`consul_node_selector`|`consul=enabled`| Node label which is used to select nodes with Consul agent. This option is taken into account only if `register_mode` is equal to `node`|
+|`pod_label_selector`|| Pay heed only to PODs with the given label |
 |`k8s_tag`|`kubernetes`| The name of tag which is added to every Consul Service. This tag idetifies all Consul Serivces which has been registered by kube-consul-register|
 |`register_mode`|`single`| The mode of register. Available options: `single`, `pod`, `node`|
 

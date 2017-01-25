@@ -34,3 +34,14 @@ func TestCheckK8sTag(t *testing.T) {
 
 	assert.True(t, CheckK8sTag(tags, "kubernetes"), "CheckK8sTag should be true")
 }
+
+func TestHasLabel(t *testing.T) {
+	t.Parallel()
+
+	labels := make(map[string]string)
+	labels["pod"] = "selector"
+
+	assert.False(t, HasLabel(labels, "pod=random"), "HasLabel should be false")
+	assert.True(t, HasLabel(labels, "pod=selector"), "HasLabel should be true")
+	assert.False(t, HasLabel(labels, ""), "HasLabel should be false")
+}

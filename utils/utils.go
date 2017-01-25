@@ -25,3 +25,20 @@ func CheckK8sTag(tags []string, k8sTag string) bool {
 	}
 	return false
 }
+
+// HasLabel checks if a given map contains specific label
+func HasLabel(labels map[string]string, searchLabel string) bool {
+	label := strings.Split(searchLabel, "=")
+
+	// if searchLabel is empty then return false
+	if searchLabel == "" {
+		return false
+	}
+
+	for key, value := range labels {
+		if key == label[0] && value == label[1] {
+			return true
+		}
+	}
+	return false
+}
