@@ -3,13 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/tczekajlo/kube-consul-register/consul"
+	"github.com/tczekajlo/kube-consul-register/metrics"
 	"github.com/tczekajlo/kube-consul-register/utils"
 
 	"github.com/golang/glog"
@@ -30,14 +34,24 @@ var (
 	cfg   *config.Config
 	mutex = &sync.Mutex{}
 
-	watchNamespace  = flag.String("watch-namespace", v1.NamespaceAll, "namespace to watch for Pods. Default is to watch all namespaces")
-	kubeconfig      = flag.String("kubeconfig", "./kubeconfig", "absolute path to the kubeconfig file")
-	configMap       = flag.String("configmap", "default/kube-consul-register-config", "name of the ConfigMap that containes the custom configuration to use")
-	inClusterConfig = flag.Bool("in-cluster", true, "use in-cluster config. Use always in case when controller is running on Kubernetes cluster")
-	syncInterval    = flag.Duration("sync-interval", 120*time.Second, "time in seconds, what period of time will be done synchronization")
-	cleanInterval   = flag.Duration("clean-interval", 1800*time.Second, "time in seconds, what period of time will be done cleaning of inactive services")
-	versionFlag     = flag.Bool("version", false, "print version end exit")
+	watchNamespace       = flag.String("watch-namespace", v1.NamespaceAll, "namespace to watch for Pods. Default is to watch all namespaces")
+	kubeconfig           = flag.String("kubeconfig", "./kubeconfig", "absolute path to the kubeconfig file")
+	configMap            = flag.String("configmap", "default/kube-consul-register-config", "name of the ConfigMap that containes the custom configuration to use")
+	inClusterConfig      = flag.Bool("in-cluster", true, "use in-cluster config. Use always in case when controller is running on Kubernetes cluster")
+	syncInterval         = flag.Duration("sync-interval", 120*time.Second, "time in seconds, what period of time will be done synchronization")
+	cleanInterval        = flag.Duration("clean-interval", 1800*time.Second, "time in seconds, what period of time will be done cleaning of inactive services")
+	metricsListenAddress = flag.String("metrics-listen-address", ":8080", "the address to listen on for HTTP requests.")
+	versionFlag          = flag.Bool("version", false, "print version end exit")
 )
+
+func init() {
+	// Metrics have to be registered to be exposed
+	prometheus.MustRegister(metrics.ConsulFailure)
+	prometheus.MustRegister(metrics.ConsulSuccess)
+	prometheus.MustRegister(metrics.PodFailure)
+	prometheus.MustRegister(metrics.PodSuccess)
+	prometheus.MustRegister(metrics.FuncDuration)
+}
 
 func main() {
 	flag.Parse()
@@ -129,9 +143,9 @@ func main() {
 
 	go handleSigterm()
 
-	for {
-		time.Sleep(30 * time.Second)
-	}
+	// Metrics
+	http.Handle("/metrics", promhttp.Handler())
+	glog.Fatal(http.ListenAndServe(*metricsListenAddress, nil))
 }
 
 func handleSigterm() {

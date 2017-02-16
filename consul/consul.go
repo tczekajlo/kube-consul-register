@@ -16,6 +16,7 @@ import (
 // Adapter builds configuration and returns Consul Client
 type Adapter struct {
 	client *consulapi.Client
+	Config *consulapi.Config
 }
 
 // New returns the ConsulAdapter.
@@ -81,6 +82,9 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 	if err != nil {
 		glog.Fatalf("consul: %s", uri.Scheme)
 	}
+
+	//Store config
+	c.Config = cfg.Consul
 
 	c.client = client
 	return c

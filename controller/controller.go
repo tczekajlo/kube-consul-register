@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/tczekajlo/kube-consul-register/config"
 	"github.com/tczekajlo/kube-consul-register/consul"
+	"github.com/tczekajlo/kube-consul-register/metrics"
 	"github.com/tczekajlo/kube-consul-register/utils"
 
 	"k8s.io/client-go/kubernetes"
@@ -99,6 +101,9 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 
 // Clean checks Consul services and remove them if service dosen't appear in K8S cluster
 func (c *Controller) Clean() error {
+	timer := prometheus.NewTimer(metrics.FuncDuration.WithLabelValues("clean"))
+	defer timer.ObserveDuration()
+
 	var podsInCluster []*PodInfo
 	var err error
 
@@ -164,6 +169,9 @@ func (c *Controller) Clean() error {
 
 // Sync synchronizes services between Consul and K8S cluster
 func (c *Controller) Sync() error {
+	timer := prometheus.NewTimer(metrics.FuncDuration.WithLabelValues("sync"))
+	defer timer.ObserveDuration()
+
 	var err error
 	c.mutex.Lock()
 
@@ -223,14 +231,21 @@ func (c *Controller) Watch() {
 		time.Second*0,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
+				timer := prometheus.NewTimer(metrics.FuncDuration.WithLabelValues("add"))
+				defer timer.ObserveDuration()
+
 				podInfo := &PodInfo{}
 				podInfo.save(obj)
 
 				glog.V(1).Infof("POD ADD: Name: %s, Namespace: %s, Phase: %s", podInfo.Name, podInfo.Namespace, podInfo.Phase)
+				metrics.PodSuccess.WithLabelValues("add").Inc()
 			},
 			DeleteFunc: func(obj interface{}) {
-				if !utils.HasLabel(obj.(*v1.Pod).ObjectMeta.Labels, c.cfg.Controller.PodLabelSelector) {
-					glog.V(1).Infof("Skip pod %s. Label selector is %s, pod's labels: %#v",
+				timer := prometheus.NewTimer(metrics.FuncDuration.WithLabelValues("delete"))
+				defer timer.ObserveDuration()
+
+				if !utils.HasLabel(obj.(*v1.Pod).ObjectMeta.Labels, c.cfg.Controller.PodLabelSelector) && c.cfg.Controller.PodLabelSelector != "" {
+					glog.Infof("Skip pod %s. Label selector is %s, pod's labels: %#v",
 						obj.(*v1.Pod).ObjectMeta.Name, c.cfg.Controller.PodLabelSelector, obj.(*v1.Pod).ObjectMeta.Labels)
 					return
 				}
@@ -239,8 +254,11 @@ func (c *Controller) Watch() {
 				c.mutex.Unlock()
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
-				if !utils.HasLabel(newObj.(*v1.Pod).ObjectMeta.Labels, c.cfg.Controller.PodLabelSelector) {
-					glog.V(1).Infof("Skip pod %s. Label selector is %s, pod's labels: %#v",
+				timer := prometheus.NewTimer(metrics.FuncDuration.WithLabelValues("update"))
+				defer timer.ObserveDuration()
+
+				if !utils.HasLabel(newObj.(*v1.Pod).ObjectMeta.Labels, c.cfg.Controller.PodLabelSelector) && c.cfg.Controller.PodLabelSelector != "" {
+					glog.Infof("Skip pod %s. Label selector is %s, pod's labels: %#v",
 						newObj.(*v1.Pod).ObjectMeta.Name, c.cfg.Controller.PodLabelSelector, newObj.(*v1.Pod).ObjectMeta.Labels)
 					return
 				}
@@ -299,7 +317,9 @@ func eventDeleteFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 		err := consulAgent.Deregister(service)
 		if err != nil {
 			glog.Errorf("Can't deregister service: %s", err)
+			metrics.ConsulFailure.WithLabelValues("deregister", consulAgent.Config.Address).Inc()
 		} else {
+			metrics.ConsulSuccess.WithLabelValues("deregister", consulAgent.Config.Address).Inc()
 			glog.Infof("Service's been deregistered, ID: %s", service.ID)
 			glog.V(2).Infof("%#v", service)
 		}
@@ -307,6 +327,7 @@ func eventDeleteFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 		delete(addedContainers, container.ContainerID)
 	}
 
+	metrics.PodSuccess.WithLabelValues("delete").Inc()
 	return nil
 }
 
@@ -339,6 +360,7 @@ func eventUpdateFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 				service, err := podInfo.PodToConsulService(container, cfg)
 				if err != nil {
 					glog.Errorf("Can't convert POD to Consul's service: %s", err)
+					metrics.PodFailure.WithLabelValues("update").Inc()
 					continue
 				}
 
@@ -347,10 +369,12 @@ func eventUpdateFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 				err = consulAgent.Register(service)
 				if err != nil {
 					glog.Errorf("Can't register service: %s", err)
+					metrics.ConsulFailure.WithLabelValues("register", consulAgent.Config.Address).Inc()
 				} else {
 					glog.Infof("Service's been registered, Name: %s, ID: %s", service.Name, service.ID)
 					glog.V(2).Infof("%#v", service)
 					addedContainers[container.ContainerID] = true
+					metrics.ConsulSuccess.WithLabelValues("deregister", consulAgent.Config.Address).Inc()
 				}
 			} else if _, ok := addedContainers[container.ContainerID]; ok && !container.Ready {
 				glog.Warningf("Container %s in POD %s has status: Ready:%t, RestartCount:%d", container.Name, podInfo.Name, container.Ready, container.RestartCount)
@@ -371,6 +395,8 @@ func eventUpdateFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 			glog.V(3).Infof("%#v", container)
 		}
 	}
+
+	metrics.PodSuccess.WithLabelValues("update").Inc()
 	return nil
 }
 

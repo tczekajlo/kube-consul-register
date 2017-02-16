@@ -84,3 +84,6 @@ $ kube-consul-register -logtostderr=true -kubeconfig=/my/kubeconfig -configmap="
 ### Run in-cluster
 
 Example of usage in-cluster you can find [here](https://github.com/tczekajlo/kube-consul-register/blob/master/examples/rs.yaml). `kube-consul-register` is run as ReplicaSet.
+
+## Metrics
+Prometheus metrics are available by `/metrics` endpoint on `:8080` address.

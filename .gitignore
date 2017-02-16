@@ -10,6 +10,7 @@ _test
 build
 bin
 dist
+vendor
 
 # Architecture specific extensions/prefixes
 *.[568vq]
