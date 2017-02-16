@@ -374,7 +374,7 @@ func eventUpdateFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 					glog.Infof("Service's been registered, Name: %s, ID: %s", service.Name, service.ID)
 					glog.V(2).Infof("%#v", service)
 					addedContainers[container.ContainerID] = true
-					metrics.ConsulSuccess.WithLabelValues("deregister", consulAgent.Config.Address).Inc()
+					metrics.ConsulSuccess.WithLabelValues("register", consulAgent.Config.Address).Inc()
 				}
 			} else if _, ok := addedContainers[container.ContainerID]; ok && !container.Ready {
 				glog.Warningf("Container %s in POD %s has status: Ready:%t, RestartCount:%d", container.Name, podInfo.Name, container.Ready, container.RestartCount)
