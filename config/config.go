@@ -48,6 +48,7 @@ type ControllerConfig struct {
 	PodLabelSelector         string
 	K8sTag                   string
 	RegisterMode             RegisterMode
+	RegisterSource           string
 }
 
 var config = &Config{}
@@ -166,6 +167,12 @@ func (c *Config) fillConfig(data map[string]string) (*Config, error) {
 		}
 	} else {
 		c.Controller.RegisterMode = RegisterSingleMode
+	}
+
+	if value, ok := data["register_source"]; ok && value != "" {
+		c.Controller.RegisterSource = value
+	} else {
+		c.Controller.RegisterSource = "pod"
 	}
 
 	return c, nil

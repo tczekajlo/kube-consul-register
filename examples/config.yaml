@@ -14,6 +14,7 @@ data:
     pod_label_selector: ""
     k8s_tag: "kubernetes"
     register_mode: "single"
+    register_source: "pod"
 kind: ConfigMap
 metadata:
     name: kube-consul-register

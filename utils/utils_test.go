@@ -35,6 +35,17 @@ func TestCheckK8sTag(t *testing.T) {
 	assert.True(t, CheckK8sTag(tags, "kubernetes"), "CheckK8sTag should be true")
 }
 
+func TestGetConsulServiceTag(t *testing.T) {
+	t.Parallel()
+
+	var tags = []string{"test", "test1"}
+
+	assert.Equal(t, "", GetConsulServiceTag(tags, "uid"), "GetConsulServiceTag should be empty")
+
+	tags = append(tags, "uid:12345")
+	assert.Equal(t, "12345", GetConsulServiceTag(tags, "uid"), "GetConsulServiceTag should be 12345")
+}
+
 func TestHasLabel(t *testing.T) {
 	t.Parallel()
 

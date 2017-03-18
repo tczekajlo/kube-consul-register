@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - 1.7
+  - 1.8
   - master
 
 before_install:
@@ -9,8 +9,11 @@ before_install:
 
 install:
   - go get github.com/stretchr/testify/assert
-  - curl https://glide.sh/get | sh
+  - wget https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz
+  - tar -zxvf glide-*.tar.gz
+  - export PATH=$PATH:`pwd`/linux-amd64/
 
 script:
+  - make clean
   - make vendor
   - make check
