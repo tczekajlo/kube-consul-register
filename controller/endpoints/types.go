@@ -1,4 +1,4 @@
-package controller
+package endpoints
 
 // FactoryAdapter has a method to work with Controller resources.
 type FactoryAdapter interface {

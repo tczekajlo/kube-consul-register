@@ -56,12 +56,24 @@ In order to use ConfigMap configuration you've to use `configmap` flag. Value of
 |`pod_label_selector`|| Pay heed only to PODs with the given label |
 |`k8s_tag`|`kubernetes`| The name of tag which is added to every Consul Service. This tag idetifies all Consul Serivces which has been registered by kube-consul-register|
 |`register_mode`|`single`| The mode of register. Available options: `single`, `pod`, `node`|
+|`register_source`|`pod`| Source name which is watching in order to add services to Consul. Available options: `pod`, `service`|
 
 ### Register mode
 The `register_mode` option determine to which Consul Agent a services should be registered.
 - `single` - registers all services in one agent. The address of agent is taken from `consul_address` option.
 - `pod` - registers service in agent which is running as container is the same pod, as Consul Agent address is taken a IP address of pod.
 - `node` - register service in agent which is running on the same node where service, as Consul Agent address is taken a name of node.
+
+### Register source
+`kube-consul-register` as default watches PODs and converts information about them into Consul Services, as alternative you can use Kubernetes Services. In order to use Kubernetes Services as source of information you have to set value of `register_source` option on `service`, additionaly you have to add annotation into specific endpoint.
+
+```
+# create service
+kubectl expose deployment my-nginx --port=80 --type=LoadBalancer
+
+# add annotation
+kubectl annotate endpoints my-nginx consul.register/enabled=true
+```
 
 ### Annotations
 There are available annotations which can be used as pod's annotations.
@@ -70,7 +82,7 @@ There are available annotations which can be used as pod's annotations.
 |Name|Value|Description|
 |----|-----|-----------|
 |`consul.regiser/enabled`|`true`\|`false`|Determine if pod should be registered in Consul. This annotation is require in order to register pod as Consul service|
-|`consul.regiser/service.name`|`service_name`|Determine name of service in Consul. If not given then is used the name of resource which created the POD|
+|`consul.regiser/service.name`|`service_name`|Determine name of service in Consul. If not given then is used the name of resource which created the POD. Only available if `register_source` is set on `pod`|
 
 The example of how to use annotation you can see [here](https://github.com/tczekajlo/kube-consul-register/blob/master/examples/nginx.yaml).
 
