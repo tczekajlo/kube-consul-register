@@ -2,19 +2,16 @@ package: github.com/tczekajlo/kube-consul-register
 import:
 - package: github.com/golang/glog
 - package: github.com/hashicorp/consul
-  version: ^0.7.2
   subpackages:
   - api
 - package: github.com/hashicorp/go-cleanhttp
-- package: github.com/tczekajlo/kube-consul-register
+- package: github.com/prometheus/client_golang
   subpackages:
-  - config
-  - consul
-  - controller
-  - utils
+  - prometheus
+  - prometheus/promhttp
+- package: k8s.io/client-go/kubernetes
 - package: k8s.io/client-go
   subpackages:
-  - kubernetes
   - pkg/api/v1
   - pkg/apis/meta/v1
   - pkg/fields
@@ -24,6 +21,5 @@ import:
   - tools/clientcmd
 testImport:
 - package: github.com/stretchr/testify
-  version: ^1.1.4
   subpackages:
   - assert

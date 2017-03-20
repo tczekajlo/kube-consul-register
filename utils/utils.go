@@ -26,6 +26,21 @@ func CheckK8sTag(tags []string, k8sTag string) bool {
 	return false
 }
 
+// GetConsulServiceTag gets tag for Consul service
+func GetConsulServiceTag(tags []string, searchKey string) string {
+	for _, tag := range tags {
+		key := strings.Split(tag, ":")
+		if len(key) <= 1 {
+			continue
+		}
+
+		if key[0] == searchKey {
+			return key[1]
+		}
+	}
+	return ""
+}
+
 // HasLabel checks if a given map contains specific label
 func HasLabel(labels map[string]string, searchLabel string) bool {
 	label := strings.Split(searchLabel, "=")
