@@ -26,9 +26,12 @@ import (
 // These are valid annotations names which are take into account.
 // "ConsulRegisterEnabledAnnotation" is a name of annotation key for `enabled` option.
 // "ConsulRegisterServiceNameAnnotation" is a name of annotation key for `service.name` option.
+// "CreatedByAnnotation" represents the key used to store the spec(json)
+// used to create the resource
 const (
 	ConsulRegisterEnabledAnnotation     string = "consul.register/enabled"
 	ConsulRegisterServiceNameAnnotation string = "consul.register/service.name"
+	CreatedByAnnotation                 string = "kubernetes.io/created-by"
 )
 
 var (
@@ -517,7 +520,7 @@ func (p *PodInfo) getContainerPort(searchContainer string) int {
 func (p *PodInfo) getReference() (v1.SerializedReference, bool) {
 	var sr v1.SerializedReference
 
-	creatorRefJSON, found := p.Annotations[v1.CreatedByAnnotation]
+	creatorRefJSON, found := p.Annotations[CreatedByAnnotation]
 	if !found {
 		glog.V(4).Infof("Pod with no created-by annotation")
 		return sr, false

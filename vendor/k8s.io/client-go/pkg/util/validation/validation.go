@@ -283,7 +283,8 @@ func IsConfigMapKey(value string) []string {
 	}
 	if value == "." {
 		errs = append(errs, `must not be '.'`)
-	} else if value == ".." {
+	}
+	if value == ".." {
 		errs = append(errs, `must not be '..'`)
 	} else if strings.HasPrefix(value, "..") {
 		errs = append(errs, `must not start with '..'`)

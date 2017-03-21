@@ -18,7 +18,7 @@ package certificates
 
 import (
 	"k8s.io/client-go/pkg/api"
-	metav1 "k8s.io/client-go/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/unversioned"
 )
 
 // +genclient=true
@@ -26,7 +26,7 @@ import (
 
 // Describes a certificate signing request
 type CertificateSigningRequest struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	api.ObjectMeta `json:"metadata,omitempty"`
 
@@ -85,13 +85,13 @@ type CertificateSigningRequestCondition struct {
 	Message string `json:"message,omitempty"`
 	// timestamp for the last update to this condition
 	// +optional
-	LastUpdateTime metav1.Time `json:"lastUpdateTime,omitempty"`
+	LastUpdateTime unversioned.Time `json:"lastUpdateTime,omitempty"`
 }
 
 type CertificateSigningRequestList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	// +optional
 	Items []CertificateSigningRequest `json:"items,omitempty"`

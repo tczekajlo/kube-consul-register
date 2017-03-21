@@ -16,23 +16,20 @@ limitations under the License.
 
 package kubeadm
 
-import (
-	metav1 "k8s.io/client-go/pkg/apis/meta/v1"
-)
+import "k8s.io/client-go/pkg/api/unversioned"
 
 type EnvParams struct {
 	KubernetesDir     string
 	HostPKIPath       string
 	HostEtcdPath      string
 	HyperkubeImage    string
-	RepositoryPrefix  string
 	DiscoveryImage    string
 	EtcdImage         string
 	ComponentLoglevel string
 }
 
 type MasterConfiguration struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 
 	Secrets           Secrets
 	API               API
@@ -74,7 +71,7 @@ type Secrets struct {
 }
 
 type NodeConfiguration struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 
 	MasterAddresses []string
 	Secrets         Secrets
@@ -84,7 +81,7 @@ type NodeConfiguration struct {
 
 // ClusterInfo TODO add description
 type ClusterInfo struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 	// TODO(phase1+) this may become simply `api.Config`
 	CertificateAuthorities []string `json:"certificateAuthorities"`
 	Endpoints              []string `json:"endpoints"`

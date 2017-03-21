@@ -15,7 +15,6 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
-	meta_v1 "k8s.io/client-go/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/pkg/types"
 	"k8s.io/client-go/tools/cache"
@@ -381,7 +380,7 @@ func (c *Controller) eventUpdateFunc(oldObj interface{}, newObj interface{}) err
 }
 
 func (c *Controller) getPod(namespace string, podName string) (*v1.Pod, error) {
-	pod, err := c.clientset.Core().Pods(namespace).Get(podName, meta_v1.GetOptions{})
+	pod, err := c.clientset.Core().Pods(namespace).Get(podName)
 	if err != nil {
 		return nil, err
 	}

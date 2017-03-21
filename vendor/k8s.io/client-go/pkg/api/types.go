@@ -18,7 +18,7 @@ package api
 
 import (
 	"k8s.io/client-go/pkg/api/resource"
-	metav1 "k8s.io/client-go/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/pkg/labels"
 	"k8s.io/client-go/pkg/runtime"
@@ -112,7 +112,7 @@ type ObjectMeta struct {
 	// created. It is not guaranteed to be set in happens-before order across separate operations.
 	// Clients may not set this value. It is represented in RFC3339 form and is in UTC.
 	// +optional
-	CreationTimestamp metav1.Time `json:"creationTimestamp,omitempty"`
+	CreationTimestamp unversioned.Time `json:"creationTimestamp,omitempty"`
 
 	// DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This
 	// field is set by the server when a graceful deletion is requested by the user, and is not
@@ -132,7 +132,7 @@ type ObjectMeta struct {
 	// Read-only.
 	// More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#metadata
 	// +optional
-	DeletionTimestamp *metav1.Time `json:"deletionTimestamp,omitempty"`
+	DeletionTimestamp *unversioned.Time `json:"deletionTimestamp,omitempty"`
 
 	// DeletionGracePeriodSeconds records the graceful deletion value set when graceful deletion
 	// was requested. Represents the most recent grace period, and may only be shortened once set.
@@ -163,7 +163,7 @@ type ObjectMeta struct {
 	// then an entry in this list will point to this controller, with the controller field set to true.
 	// There cannot be more than one managing controller.
 	// +optional
-	OwnerReferences []metav1.OwnerReference `json:"ownerReferences,omitempty"`
+	OwnerReferences []OwnerReference `json:"ownerReferences,omitempty"`
 
 	// Must be empty before the object is deleted from the registry. Each entry
 	// is an identifier for the responsible component that will remove the entry
@@ -368,7 +368,7 @@ type PersistentVolumeClaimVolumeSource struct {
 // +nonNamespaced=true
 
 type PersistentVolume struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -429,17 +429,17 @@ type PersistentVolumeStatus struct {
 }
 
 type PersistentVolumeList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PersistentVolume `json:"items"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
+	Items                []PersistentVolume `json:"items"`
 }
 
 // +genclient=true
 
 // PersistentVolumeClaim is a user's request for and claim to a persistent volume
 type PersistentVolumeClaim struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -453,10 +453,10 @@ type PersistentVolumeClaim struct {
 }
 
 type PersistentVolumeClaimList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PersistentVolumeClaim `json:"items"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
+	Items                []PersistentVolumeClaim `json:"items"`
 }
 
 // PersistentVolumeClaimSpec describes the common attributes of storage devices
@@ -468,7 +468,7 @@ type PersistentVolumeClaimSpec struct {
 	// A label query over volumes to consider for binding. This selector is
 	// ignored when VolumeName is set
 	// +optional
-	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+	Selector *unversioned.LabelSelector `json:"selector,omitempty"`
 	// Resources represents the minimum resources required
 	// +optional
 	Resources ResourceRequirements `json:"resources,omitempty"`
@@ -1362,7 +1362,7 @@ type ContainerStateWaiting struct {
 
 type ContainerStateRunning struct {
 	// +optional
-	StartedAt metav1.Time `json:"startedAt,omitempty"`
+	StartedAt unversioned.Time `json:"startedAt,omitempty"`
 }
 
 type ContainerStateTerminated struct {
@@ -1374,9 +1374,9 @@ type ContainerStateTerminated struct {
 	// +optional
 	Message string `json:"message,omitempty"`
 	// +optional
-	StartedAt metav1.Time `json:"startedAt,omitempty"`
+	StartedAt unversioned.Time `json:"startedAt,omitempty"`
 	// +optional
-	FinishedAt metav1.Time `json:"finishedAt,omitempty"`
+	FinishedAt unversioned.Time `json:"finishedAt,omitempty"`
 	// +optional
 	ContainerID string `json:"containerID,omitempty"`
 }
@@ -1454,9 +1454,9 @@ type PodCondition struct {
 	Type   PodConditionType `json:"type"`
 	Status ConditionStatus  `json:"status"`
 	// +optional
-	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+	LastProbeTime unversioned.Time `json:"lastProbeTime,omitempty"`
 	// +optional
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	LastTransitionTime unversioned.Time `json:"lastTransitionTime,omitempty"`
 	// +optional
 	Reason string `json:"reason,omitempty"`
 	// +optional
@@ -1477,9 +1477,9 @@ const (
 
 // PodList is a list of Pods.
 type PodList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []Pod `json:"items"`
 }
@@ -1641,7 +1641,7 @@ type WeightedPodAffinityTerm struct {
 type PodAffinityTerm struct {
 	// A label query over a set of resources, in this case pods.
 	// +optional
-	LabelSelector *metav1.LabelSelector `json:"labelSelector,omitempty"`
+	LabelSelector *unversioned.LabelSelector `json:"labelSelector,omitempty"`
 	// namespaces specifies which namespaces the labelSelector applies to (matches against);
 	// nil list means "this pod's namespace," empty list means "all namespaces"
 	// The json tag here is not "omitempty" since we need to distinguish nil and empty.
@@ -1916,7 +1916,7 @@ type PodStatus struct {
 	// Date and time at which the object was acknowledged by the Kubelet.
 	// This is before the Kubelet pulled the container image(s) for the pod.
 	// +optional
-	StartTime *metav1.Time `json:"startTime,omitempty"`
+	StartTime *unversioned.Time `json:"startTime,omitempty"`
 
 	// The list has one entry per init container in the manifest. The most recent successful
 	// init container will have ready = true, the most recently started container will have
@@ -1934,7 +1934,7 @@ type PodStatus struct {
 
 // PodStatusResult is a wrapper for PodStatus returned by kubelet that can be encode/decoded
 type PodStatusResult struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 	// Status represents the current information about a pod. This data may not be up
@@ -1947,7 +1947,7 @@ type PodStatusResult struct {
 
 // Pod is a collection of containers, used as either input (create, update) or as output (list, get).
 type Pod struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -1976,7 +1976,7 @@ type PodTemplateSpec struct {
 
 // PodTemplate describes a template for creating copies of a predefined pod.
 type PodTemplate struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -1987,9 +1987,9 @@ type PodTemplate struct {
 
 // PodTemplateList is a list of PodTemplates.
 type PodTemplateList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []PodTemplate `json:"items"`
 }
@@ -2068,7 +2068,7 @@ type ReplicationControllerCondition struct {
 	Status ConditionStatus `json:"status"`
 	// The last time the condition transitioned from one status to another.
 	// +optional
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	LastTransitionTime unversioned.Time `json:"lastTransitionTime,omitempty"`
 	// The reason for the condition's last transition.
 	// +optional
 	Reason string `json:"reason,omitempty"`
@@ -2081,7 +2081,7 @@ type ReplicationControllerCondition struct {
 
 // ReplicationController represents the configuration of a replication controller.
 type ReplicationController struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -2097,9 +2097,9 @@ type ReplicationController struct {
 
 // ReplicationControllerList is a collection of replication controllers.
 type ReplicationControllerList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []ReplicationController `json:"items"`
 }
@@ -2112,9 +2112,9 @@ const (
 
 // ServiceList holds a list of services.
 type ServiceList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []Service `json:"items"`
 }
@@ -2286,7 +2286,7 @@ type ServicePort struct {
 // (for example 3306) that the proxy listens on, and the selector that determines which pods
 // will answer requests sent through the proxy.
 type Service struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -2306,7 +2306,7 @@ type Service struct {
 // * a principal that can be authenticated and authorized
 // * a set of secrets
 type ServiceAccount struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -2322,9 +2322,9 @@ type ServiceAccount struct {
 
 // ServiceAccountList is a list of ServiceAccount objects
 type ServiceAccountList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []ServiceAccount `json:"items"`
 }
@@ -2344,7 +2344,7 @@ type ServiceAccountList struct {
 //     },
 //  ]
 type Endpoints struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -2401,9 +2401,9 @@ type EndpointPort struct {
 
 // EndpointsList is a list of endpoints.
 type EndpointsList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []Endpoints `json:"items"`
 }
@@ -2537,7 +2537,7 @@ type PreferAvoidPodsEntry struct {
 	PodSignature PodSignature `json:"podSignature"`
 	// Time at which this entry was added to the list.
 	// +optional
-	EvictionTime metav1.Time `json:"evictionTime,omitempty"`
+	EvictionTime unversioned.Time `json:"evictionTime,omitempty"`
 	// (brief) reason why this entry was added to the list.
 	// +optional
 	Reason string `json:"reason,omitempty"`
@@ -2551,7 +2551,7 @@ type PreferAvoidPodsEntry struct {
 type PodSignature struct {
 	// Reference to controller whose pods should avoid this node.
 	// +optional
-	PodController *metav1.OwnerReference `json:"podController,omitempty"`
+	PodController *OwnerReference `json:"podController,omitempty"`
 }
 
 // Describe a container image
@@ -2598,9 +2598,9 @@ type NodeCondition struct {
 	Type   NodeConditionType `json:"type"`
 	Status ConditionStatus   `json:"status"`
 	// +optional
-	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty"`
+	LastHeartbeatTime unversioned.Time `json:"lastHeartbeatTime,omitempty"`
 	// +optional
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	LastTransitionTime unversioned.Time `json:"lastTransitionTime,omitempty"`
 	// +optional
 	Reason string `json:"reason,omitempty"`
 	// +optional
@@ -2666,7 +2666,7 @@ type ResourceList map[ResourceName]resource.Quantity
 // Node is a worker node in Kubernetes
 // The name of the node according to etcd is in ObjectMeta.Name.
 type Node struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -2681,9 +2681,9 @@ type Node struct {
 
 // NodeList is a list of nodes.
 type NodeList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []Node `json:"items"`
 }
@@ -2725,7 +2725,7 @@ const (
 // A namespace provides a scope for Names.
 // Use of multiple namespaces is optional
 type Namespace struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -2740,16 +2740,16 @@ type Namespace struct {
 
 // NamespaceList is a list of Namespaces.
 type NamespaceList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []Namespace `json:"items"`
 }
 
 // Binding ties one object to another - for example, a pod is bound to a node by a scheduler.
 type Binding struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// ObjectMeta describes the object that is being bound.
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
@@ -2767,7 +2767,7 @@ type Preconditions struct {
 
 // DeleteOptions may be provided when deleting an API object
 type DeleteOptions struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 
 	// Optional duration in seconds before the object should be deleted. Value must be non-negative integer.
 	// The value zero indicates delete immediately. If this value is nil, the default grace period for the
@@ -2786,10 +2786,19 @@ type DeleteOptions struct {
 	OrphanDependents *bool `json:"orphanDependents,omitempty"`
 }
 
+// ExportOptions is the query options to the standard REST get call.
+type ExportOptions struct {
+	unversioned.TypeMeta `json:",inline"`
+	// Should this value be exported.  Export strips fields that a user can not specify.
+	Export bool `json:"export"`
+	// Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'
+	Exact bool `json:"exact"`
+}
+
 // ListOptions is the query options to a standard REST list call, and has future support for
 // watch calls.
 type ListOptions struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 
 	// A selector based on labels
 	LabelSelector labels.Selector
@@ -2797,12 +2806,11 @@ type ListOptions struct {
 	FieldSelector fields.Selector
 	// If true, watch for changes to this list
 	Watch bool
-	// When specified with a watch call, shows changes that occur after that particular version of a resource.
-	// Defaults to changes from the beginning of history.
-	// When specified for list:
+	// For watch, it's the resource version to watch.
+	// For list,
 	// - if unset, then the result is returned from remote storage based on quorum-read flag;
 	// - if it's 0, then we simply return what we currently have in cache, no guarantee;
-	// - if set to non zero, then the result is at least as fresh as given rv.
+	// - if set to non zero, then the result is as fresh as given rv.
 	ResourceVersion string
 	// Timeout for the list/watch call.
 	TimeoutSeconds *int64
@@ -2810,7 +2818,7 @@ type ListOptions struct {
 
 // PodLogOptions is the query options for a Pod's logs REST call
 type PodLogOptions struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 
 	// Container for which to return logs
 	Container string
@@ -2827,7 +2835,7 @@ type PodLogOptions struct {
 	// precedes the time a pod was started, only logs since the pod start will be returned.
 	// If this value is in the future, no logs will be returned.
 	// Only one of sinceSeconds or sinceTime may be specified.
-	SinceTime *metav1.Time
+	SinceTime *unversioned.Time
 	// If true, add an RFC3339 or RFC3339Nano timestamp at the beginning of every line
 	// of log output.
 	Timestamps bool
@@ -2843,7 +2851,7 @@ type PodLogOptions struct {
 // PodAttachOptions is the query options to a Pod's remote attach call
 // TODO: merge w/ PodExecOptions below for stdin, stdout, etc
 type PodAttachOptions struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 
 	// Stdin if true indicates that stdin is to be redirected for the attach call
 	// +optional
@@ -2868,7 +2876,7 @@ type PodAttachOptions struct {
 
 // PodExecOptions is the query options to a Pod's remote exec call
 type PodExecOptions struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 
 	// Stdin if true indicates that stdin is to be redirected for the exec call
 	Stdin bool
@@ -2891,7 +2899,7 @@ type PodExecOptions struct {
 
 // PodProxyOptions is the query options to a Pod's proxy call
 type PodProxyOptions struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 
 	// Path is the URL path to use for the current proxy request
 	Path string
@@ -2899,7 +2907,7 @@ type PodProxyOptions struct {
 
 // NodeProxyOptions is the query options to a Node's proxy call
 type NodeProxyOptions struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 
 	// Path is the URL path to use for the current proxy request
 	Path string
@@ -2907,7 +2915,7 @@ type NodeProxyOptions struct {
 
 // ServiceProxyOptions is the query options to a Service's proxy call.
 type ServiceProxyOptions struct {
-	metav1.TypeMeta
+	unversioned.TypeMeta
 
 	// Path is the part of URLs that include service endpoints, suffixes,
 	// and parameters to use for the current proxy request to service.
@@ -2915,6 +2923,26 @@ type ServiceProxyOptions struct {
 	// http://localhost/api/v1/namespaces/kube-system/services/elasticsearch-logging/_search?q=user:kimchy.
 	// Path is _search?q=user:kimchy.
 	Path string
+}
+
+// OwnerReference contains enough information to let you identify an owning
+// object. Currently, an owning object must be in the same namespace, so there
+// is no namespace field.
+type OwnerReference struct {
+	// API version of the referent.
+	APIVersion string `json:"apiVersion"`
+	// Kind of the referent.
+	// More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds
+	Kind string `json:"kind"`
+	// Name of the referent.
+	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
+	Name string `json:"name"`
+	// UID of the referent.
+	// More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+	UID types.UID `json:"uid"`
+	// If true, this reference points to the managing controller.
+	// +optional
+	Controller *bool `json:"controller,omitempty"`
 }
 
 // ObjectReference contains enough information to let you inspect or modify the referred object.
@@ -2951,7 +2979,7 @@ type LocalObjectReference struct {
 }
 
 type SerializedReference struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	Reference ObjectReference `json:"reference,omitempty"`
 }
@@ -2978,7 +3006,7 @@ const (
 // Event is a report of an event somewhere in the cluster.
 // TODO: Decide whether to store these separately or with the object they apply to.
 type Event struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -3004,11 +3032,11 @@ type Event struct {
 
 	// The time at which the event was first recorded. (Time of server receipt is in TypeMeta.)
 	// +optional
-	FirstTimestamp metav1.Time `json:"firstTimestamp,omitempty"`
+	FirstTimestamp unversioned.Time `json:"firstTimestamp,omitempty"`
 
 	// The time at which the most recent occurrence of this event was recorded.
 	// +optional
-	LastTimestamp metav1.Time `json:"lastTimestamp,omitempty"`
+	LastTimestamp unversioned.Time `json:"lastTimestamp,omitempty"`
 
 	// The number of times this event has occurred.
 	// +optional
@@ -3021,18 +3049,18 @@ type Event struct {
 
 // EventList is a list of events.
 type EventList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []Event `json:"items"`
 }
 
 // List holds a list of objects, which may not be known by the server.
 type List struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []runtime.Object `json:"items"`
 }
@@ -3081,7 +3109,7 @@ type LimitRangeSpec struct {
 
 // LimitRange sets resource usage limits for each kind of resource in a Namespace
 type LimitRange struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -3092,9 +3120,9 @@ type LimitRange struct {
 
 // LimitRangeList is a list of LimitRange items.
 type LimitRangeList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	// Items is a list of LimitRange objects
 	Items []LimitRange `json:"items"`
@@ -3171,7 +3199,7 @@ type ResourceQuotaStatus struct {
 
 // ResourceQuota sets aggregate quota restrictions enforced per namespace
 type ResourceQuota struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -3186,9 +3214,9 @@ type ResourceQuota struct {
 
 // ResourceQuotaList is a list of ResourceQuota items
 type ResourceQuotaList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	// Items is a list of ResourceQuota objects
 	Items []ResourceQuota `json:"items"`
@@ -3199,7 +3227,7 @@ type ResourceQuotaList struct {
 // Secret holds secret data of a certain type.  The total bytes of the values in
 // the Data field must be less than MaxSecretSize bytes.
 type Secret struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -3300,9 +3328,9 @@ const (
 )
 
 type SecretList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []Secret `json:"items"`
 }
@@ -3311,7 +3339,7 @@ type SecretList struct {
 
 // ConfigMap holds configuration data for components or applications to consume.
 type ConfigMap struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -3323,9 +3351,9 @@ type ConfigMap struct {
 
 // ConfigMapList is a resource containing a list of ConfigMap objects.
 type ConfigMapList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	// Items is the list of ConfigMaps.
 	Items []ConfigMap `json:"items"`
@@ -3405,7 +3433,7 @@ type ComponentCondition struct {
 
 // ComponentStatus (and ComponentStatusList) holds the cluster validation info.
 type ComponentStatus struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 
@@ -3414,9 +3442,9 @@ type ComponentStatus struct {
 }
 
 type ComponentStatusList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	Items []ComponentStatus `json:"items"`
 }
@@ -3484,7 +3512,7 @@ type SELinuxOptions struct {
 // data encoding hints). A range allocation should *ALWAYS* be recreatable at any time by observation
 // of the cluster, thus the object is less strongly typed than most.
 type RangeAllocation struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	ObjectMeta `json:"metadata,omitempty"`
 	// A string representing a unique label for a range of resources, such as a CIDR "10.0.0.0/8" or
@@ -3510,5 +3538,5 @@ const (
 
 	// When the --failure-domains scheduler flag is not specified,
 	// DefaultFailureDomains defines the set of label keys used when TopologyKey is empty in PreferredDuringScheduling anti-affinity.
-	DefaultFailureDomains string = metav1.LabelHostname + "," + metav1.LabelZoneFailureDomain + "," + metav1.LabelZoneRegion
+	DefaultFailureDomains string = unversioned.LabelHostname + "," + unversioned.LabelZoneFailureDomain + "," + unversioned.LabelZoneRegion
 )
