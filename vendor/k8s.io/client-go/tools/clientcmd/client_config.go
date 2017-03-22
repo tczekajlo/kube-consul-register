@@ -44,7 +44,7 @@ var (
 	// DEPRECATED will be replace
 	DefaultClientConfig = DirectClientConfig{*clientcmdapi.NewConfig(), "", &ConfigOverrides{
 		ClusterDefaults: ClusterDefaults,
-	}, nil, NewDefaultClientConfigLoadingRules(), promptedCredentials{}}
+	}, nil, NewDefaultClientConfigLoadingRules()}
 )
 
 // getDefaultServer returns a default setting for DefaultClientConfig
@@ -72,11 +72,6 @@ type ClientConfig interface {
 
 type PersistAuthProviderConfigForUser func(user string) rest.AuthProviderConfigPersister
 
-type promptedCredentials struct {
-	username string
-	password string
-}
-
 // DirectClientConfig is a ClientConfig interface that is backed by a clientcmdapi.Config, options overrides, and an optional fallbackReader for auth information
 type DirectClientConfig struct {
 	config         clientcmdapi.Config
@@ -84,23 +79,21 @@ type DirectClientConfig struct {
 	overrides      *ConfigOverrides
 	fallbackReader io.Reader
 	configAccess   ConfigAccess
-	// promptedCredentials store the credentials input by the user
-	promptedCredentials promptedCredentials
 }
 
 // NewDefaultClientConfig creates a DirectClientConfig using the config.CurrentContext as the context name
 func NewDefaultClientConfig(config clientcmdapi.Config, overrides *ConfigOverrides) ClientConfig {
-	return &DirectClientConfig{config, config.CurrentContext, overrides, nil, NewDefaultClientConfigLoadingRules(), promptedCredentials{}}
+	return &DirectClientConfig{config, config.CurrentContext, overrides, nil, NewDefaultClientConfigLoadingRules()}
 }
 
 // NewNonInteractiveClientConfig creates a DirectClientConfig using the passed context name and does not have a fallback reader for auth information
 func NewNonInteractiveClientConfig(config clientcmdapi.Config, contextName string, overrides *ConfigOverrides, configAccess ConfigAccess) ClientConfig {
-	return &DirectClientConfig{config, contextName, overrides, nil, configAccess, promptedCredentials{}}
+	return &DirectClientConfig{config, contextName, overrides, nil, configAccess}
 }
 
 // NewInteractiveClientConfig creates a DirectClientConfig using the passed context name and a reader in case auth information is not provided via files or flags
 func NewInteractiveClientConfig(config clientcmdapi.Config, contextName string, overrides *ConfigOverrides, fallbackReader io.Reader, configAccess ConfigAccess) ClientConfig {
-	return &DirectClientConfig{config, contextName, overrides, fallbackReader, configAccess, promptedCredentials{}}
+	return &DirectClientConfig{config, contextName, overrides, fallbackReader, configAccess}
 }
 
 func (config *DirectClientConfig) RawConfig() (clientcmdapi.Config, error) {
@@ -151,7 +144,7 @@ func (config *DirectClientConfig) ClientConfig() (*rest.Config, error) {
 		clientConfig.Host = u.String()
 	}
 	if len(configAuthInfo.Impersonate) > 0 {
-		clientConfig.Impersonate = rest.ImpersonationConfig{UserName: configAuthInfo.Impersonate}
+		clientConfig.Impersonate = configAuthInfo.Impersonate
 	}
 
 	// only try to read the auth information if we are secure
@@ -166,7 +159,7 @@ func (config *DirectClientConfig) ClientConfig() (*rest.Config, error) {
 			authInfoName, _ := config.getAuthInfoName()
 			persister = PersisterForUser(config.configAccess, authInfoName)
 		}
-		userAuthPartialConfig, err := config.getUserIdentificationPartialConfig(configAuthInfo, config.fallbackReader, persister)
+		userAuthPartialConfig, err := getUserIdentificationPartialConfig(configAuthInfo, config.fallbackReader, persister)
 		if err != nil {
 			return nil, err
 		}
@@ -208,7 +201,7 @@ func getServerIdentificationPartialConfig(configAuthInfo clientcmdapi.AuthInfo, 
 // 2.  configAuthInfo.auth-path (this file can contain information that conflicts with #1, and we want #1 to win the priority)
 // 3.  if there is not enough information to idenfity the user, load try the ~/.kubernetes_auth file
 // 4.  if there is not enough information to identify the user, prompt if possible
-func (config *DirectClientConfig) getUserIdentificationPartialConfig(configAuthInfo clientcmdapi.AuthInfo, fallbackReader io.Reader, persistAuthConfig rest.AuthProviderConfigPersister) (*rest.Config, error) {
+func getUserIdentificationPartialConfig(configAuthInfo clientcmdapi.AuthInfo, fallbackReader io.Reader, persistAuthConfig rest.AuthProviderConfigPersister) (*rest.Config, error) {
 	mergedConfig := &rest.Config{}
 
 	// blindly overwrite existing values based on precedence
@@ -222,7 +215,7 @@ func (config *DirectClientConfig) getUserIdentificationPartialConfig(configAuthI
 		mergedConfig.BearerToken = string(tokenBytes)
 	}
 	if len(configAuthInfo.Impersonate) > 0 {
-		mergedConfig.Impersonate = rest.ImpersonationConfig{UserName: configAuthInfo.Impersonate}
+		mergedConfig.Impersonate = configAuthInfo.Impersonate
 	}
 	if len(configAuthInfo.ClientCertificate) > 0 || len(configAuthInfo.ClientCertificateData) > 0 {
 		mergedConfig.CertFile = configAuthInfo.ClientCertificate
@@ -241,11 +234,6 @@ func (config *DirectClientConfig) getUserIdentificationPartialConfig(configAuthI
 
 	// if there still isn't enough information to authenticate the user, try prompting
 	if !canIdentifyUser(*mergedConfig) && (fallbackReader != nil) {
-		if len(config.promptedCredentials.username) > 0 && len(config.promptedCredentials.password) > 0 {
-			mergedConfig.Username = config.promptedCredentials.username
-			mergedConfig.Password = config.promptedCredentials.password
-			return mergedConfig, nil
-		}
 		prompter := NewPromptingAuthLoader(fallbackReader)
 		promptedAuthInfo, err := prompter.Prompt()
 		if err != nil {
@@ -256,8 +244,6 @@ func (config *DirectClientConfig) getUserIdentificationPartialConfig(configAuthI
 		mergedConfig = &rest.Config{}
 		mergo.Merge(mergedConfig, promptedConfig)
 		mergo.Merge(mergedConfig, previouslyMergedConfig)
-		config.promptedCredentials.username = mergedConfig.Username
-		config.promptedCredentials.password = mergedConfig.Password
 	}
 
 	return mergedConfig, nil

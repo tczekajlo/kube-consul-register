@@ -16,12 +16,10 @@ limitations under the License.
 
 package v1alpha1
 
-import (
-	metav1 "k8s.io/client-go/pkg/apis/meta/v1"
-)
+import "k8s.io/client-go/pkg/api/unversioned"
 
 type MasterConfiguration struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 
 	Secrets           Secrets    `json:"secrets"`
 	API               API        `json:"api"`
@@ -63,7 +61,7 @@ type Secrets struct {
 }
 
 type NodeConfiguration struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 
 	MasterAddresses []string `json:"masterAddresses"`
 	Secrets         Secrets  `json:"secrets"`
@@ -73,7 +71,7 @@ type NodeConfiguration struct {
 
 // ClusterInfo TODO add description
 type ClusterInfo struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// TODO(phase1+) this may become simply `api.Config`
 	CertificateAuthorities []string `json:"certificateAuthorities"`
 	Endpoints              []string `json:"endpoints"`

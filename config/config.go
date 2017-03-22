@@ -9,7 +9,6 @@ import (
 	consulapi "github.com/hashicorp/consul/api"
 
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/apis/meta/v1"
 )
 
 // RegisterMode is a name of register mode
@@ -58,7 +57,7 @@ var config = &Config{}
 func Load(clientset *kubernetes.Clientset, namespace string, name string) (*Config, error) {
 	var filledConfig *Config
 
-	cfg, err := clientset.Core().ConfigMaps(namespace).Get(name, v1.GetOptions{})
+	cfg, err := clientset.Core().ConfigMaps(namespace).Get(name)
 	if err != nil {
 		return config, fmt.Errorf(err.Error())
 	}

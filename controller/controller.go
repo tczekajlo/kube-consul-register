@@ -14,7 +14,6 @@ type Factory struct{}
 
 // New creates an instance of controller
 func (f *Factory) New(clientset *kubernetes.Clientset, consulInstance consul.Adapter, cfg *config.Config, namespace string) FactoryAdapter {
-	//var result FactoryAdapter
 
 	switch source := cfg.Controller.RegisterSource; source {
 	case "service":
@@ -22,5 +21,4 @@ func (f *Factory) New(clientset *kubernetes.Clientset, consulInstance consul.Ada
 	default:
 		return pods.New(clientset, consulInstance, cfg, namespace)
 	}
-	//return result
 }

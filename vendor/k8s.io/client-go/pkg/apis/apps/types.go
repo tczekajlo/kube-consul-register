@@ -18,7 +18,7 @@ package apps
 
 import (
 	"k8s.io/client-go/pkg/api"
-	metav1 "k8s.io/client-go/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/unversioned"
 )
 
 // +genclient=true
@@ -30,7 +30,7 @@ import (
 // The StatefulSet guarantees that a given network identity will always
 // map to the same storage identity.
 type StatefulSet struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
 	api.ObjectMeta `json:"metadata,omitempty"`
 
@@ -58,7 +58,7 @@ type StatefulSetSpec struct {
 	// If empty, defaulted to labels on the pod template.
 	// More info: http://kubernetes.io/docs/user-guide/labels#label-selectors
 	// +optional
-	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+	Selector *unversioned.LabelSelector `json:"selector,omitempty"`
 
 	// Template is the object that describes the pod that will be created if
 	// insufficient replicas are detected. Each pod stamped out by the StatefulSet
@@ -96,8 +96,8 @@ type StatefulSetStatus struct {
 
 // StatefulSetList is a collection of StatefulSets.
 type StatefulSetList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []StatefulSet `json:"items"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
+	Items                []StatefulSet `json:"items"`
 }

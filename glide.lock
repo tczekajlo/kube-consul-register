@@ -1,5 +1,5 @@
-hash: 3bb829ddc27159a16ca3c065c68d96b8d32cd03826e0ff183fc5c1985b1bc26d
-updated: 2017-03-18T11:11:46.985492331+01:00
+hash: 69c97b339256db9b49ed45bdf402c14c93f76861dca6418c71dc3916eb959b48
+updated: 2017-03-21T14:14:14.006994071+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -58,7 +58,7 @@ imports:
 - name: github.com/golang/glog
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/golang/protobuf
-  version: df1d3ca07d2d07bba352d5b73c4313b4e2a6203e
+  version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:
   - proto
 - name: github.com/google/gofuzz
@@ -99,17 +99,19 @@ imports:
   - prometheus
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  version: 6f3806018612930941127f2a7c6c453ba2c527d2
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 85637ea67b04b5c3bb25e671dacded2977f8f9f6
+  version: 49fee292b27bfff7f354ee0f64e1bc4850462edf
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: abf152e5f3e97f2fafac028d2cc06c1feb87ffa5
+  version: a1dba9ce8baed984a2495b658c82687f8157b98f
+  subpackages:
+  - xfs
 - name: github.com/PuerkitoBio/purell
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
@@ -174,7 +176,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/client-go
-  version: 243d8a9cb66a51ad8676157f79e71033b4014a2a
+  version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
   - discovery
   - kubernetes
@@ -194,7 +196,9 @@ imports:
   - pkg/api/errors
   - pkg/api/install
   - pkg/api/meta
+  - pkg/api/meta/metatypes
   - pkg/api/resource
+  - pkg/api/unversioned
   - pkg/api/v1
   - pkg/api/validation/path
   - pkg/apimachinery
@@ -222,8 +226,6 @@ imports:
   - pkg/apis/extensions
   - pkg/apis/extensions/install
   - pkg/apis/extensions/v1beta1
-  - pkg/apis/meta/v1
-  - pkg/apis/meta/v1/unstructured
   - pkg/apis/policy
   - pkg/apis/policy/install
   - pkg/apis/policy/v1beta1
@@ -240,7 +242,6 @@ imports:
   - pkg/genericapiserver/openapi/common
   - pkg/labels
   - pkg/runtime
-  - pkg/runtime/schema
   - pkg/runtime/serializer
   - pkg/runtime/serializer/json
   - pkg/runtime/serializer/protobuf

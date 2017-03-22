@@ -18,7 +18,7 @@ package federation
 
 import (
 	"k8s.io/client-go/pkg/api"
-	metav1 "k8s.io/client-go/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/unversioned"
 )
 
 // ServerAddressByClientCIDR helps the client to determine the server address that they should use, depending on the clientCIDR that they match.
@@ -64,10 +64,10 @@ type ClusterCondition struct {
 	Status api.ConditionStatus `json:"status"`
 	// Last time the condition was checked.
 	// +optional
-	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+	LastProbeTime unversioned.Time `json:"lastProbeTime,omitempty"`
 	// Last time the condition transit from one status to another.
 	// +optional
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	LastTransitionTime unversioned.Time `json:"lastTransitionTime,omitempty"`
 	// (brief) reason for the condition's last transition.
 	// +optional
 	Reason string `json:"reason,omitempty"`
@@ -95,7 +95,7 @@ type ClusterStatus struct {
 
 // Information about a registered cluster in a federated kubernetes setup. Clusters are not namespaced and have unique names in the federation.
 type Cluster struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// Standard object's metadata.
 	// More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#metadata
 	// +optional
@@ -111,11 +111,11 @@ type Cluster struct {
 
 // A list of all the kubernetes clusters registered to the federation
 type ClusterList struct {
-	metav1.TypeMeta `json:",inline"`
+	unversioned.TypeMeta `json:",inline"`
 	// Standard list metadata.
 	// More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds
 	// +optional
-	metav1.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	// List of Cluster objects.
 	Items []Cluster `json:"items"`
