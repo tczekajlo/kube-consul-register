@@ -128,7 +128,7 @@ func main() {
 			glog.Info("Start syncing...")
 			err := ctr.Sync()
 			if err != nil {
-				glog.Errorf("Unable to syncing PODs: %s", err)
+				glog.Errorf("Unable to syncing: %s", err)
 			} else {
 				glog.Info("Synchronization's been ended")
 			}

@@ -49,14 +49,14 @@ In order to use ConfigMap configuration you've to use `configmap` flag. Value of
 |`consul_cert_file`|| Path to an SSL client certificate to use to authenticate to the Consul server|
 |`consul_key_file`|| Path to an SSL client certificate key to use to authenticate to the Consul server|
 |`consul_insecure_skip_verify`|`false`| Skip verifying certificates when connecting via SSL|
-|`consul_token`|| The Consul ACL token. Token is used to provide a per-request ACL token hich overrides the agent's default token|
+|`consul_token`|| The Consul ACL token. Token is used to provide a per-request ACL token which overrides the agent's default token|
 |`consul_timeout`|`2s`| Time limit for requests made by the Consul HTTP client. A Timeout of zero means no timeout|
 |`consul_container_name`|`consul`| The name of container in POD with Consul Agent. The container with given name will be skip and not registered in Consul. This options is taken into account only if `register_mode` is set to `pod`|
 |`consul_node_selector`|`consul=enabled`| Node label which is used to select nodes with Consul agent. This option is taken into account only if `register_mode` is equal to `node`|
 |`pod_label_selector`|| Pay heed only to PODs with the given label |
-|`k8s_tag`|`kubernetes`| The name of tag which is added to every Consul Service. This tag idetifies all Consul Serivces which has been registered by kube-consul-register|
+|`k8s_tag`|`kubernetes`| The name of tag which is added to every Consul Service. This tag identifies all Consul Services which has been registered by kube-consul-register|
 |`register_mode`|`single`| The mode of register. Available options: `single`, `pod`, `node`|
-|`register_source`|`pod`| Source name which is watching in order to add services to Consul. Available options: `pod`, `service`|
+|`register_source`|`pod`| Source name which is watching in order to add services to Consul. Available options: `pod`, `service`, `endpoint`|
 
 ### Register mode
 The `register_mode` option determine to which Consul Agent a services should be registered.
@@ -65,7 +65,9 @@ The `register_mode` option determine to which Consul Agent a services should be 
 - `node` - register service in agent which is running on the same node where service, as Consul Agent address is taken a name of node.
 
 ### Register source
-`kube-consul-register` as default watches PODs and converts information about them into Consul Services, as alternative you can use Kubernetes Services. In order to use Kubernetes Services as source of information you have to set value of `register_source` option on `service`, additionaly you have to add annotation into specific endpoint.
+`kube-consul-register` as default watches PODs and converts information about them into Consul Services, as alternative you can use Kubernetes Services or Endpoints.
+
+In order to use Kubernetes Endpoints as source of information you have to set value of `register_source` option on `endpoints`, additionally you have to add annotation into specific endpoint.
 
 ```
 # create service
@@ -74,6 +76,8 @@ kubectl expose deployment my-nginx --port=80 --type=LoadBalancer
 # add annotation
 kubectl annotate endpoints my-nginx consul.register/enabled=true
 ```
+
+If you want to use Kubernetes Services you have to set value of `register_source` on `service`, only service with type `NodePort` is take into account. 
 
 ### Annotations
 There are available annotations which can be used as pod's annotations.
