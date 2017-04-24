@@ -99,3 +99,6 @@ Example of usage in-cluster you can find [here](https://github.com/tczekajlo/kub
 
 ## Metrics
 Prometheus metrics are available by `/metrics` endpoint on `:8080` address.
+
+## Thanks to:
+Szymon Florian ;)
