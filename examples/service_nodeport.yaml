@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    consul.register/enabled: "true"
+  labels:
+    run: my-nginx
+  name: my-nginx
+  namespace: default
+spec:
+  ports:
+  - nodePort: 32410
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: my-nginx
+  sessionAffinity: None
+  type: NodePort
