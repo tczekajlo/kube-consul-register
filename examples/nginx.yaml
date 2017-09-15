@@ -19,6 +19,7 @@ spec:
     metadata:
       labels:
         run: nginx
+        production: tag # Would create `production` tag for service `nginx`. Instead of `production:tag`.
       annotations:
         consul.register/enabled: "true"
         #consul.register/service.name: "mynginx"
