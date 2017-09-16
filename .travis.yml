@@ -5,7 +5,7 @@ go:
   - master
 
 before_install:
-  - mkdir $GOPATH/bin
+  - mkdir -p $GOPATH/bin
 
 install:
   - go get github.com/stretchr/testify/assert

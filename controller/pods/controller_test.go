@@ -15,6 +15,7 @@ func TestPodInfoMethods(t *testing.T) {
 	var annotations = make(map[string]string)
 
 	labels["app"] = "kubernetes"
+	labels["production"] = "tag"
 	annotations["consul.register/enabled"] = "true"
 	annotations["consul.register/service.name"] = "servicename"
 
@@ -55,6 +56,7 @@ func TestPodInfoMethods(t *testing.T) {
 	assert.Error(t, err, "An error was expected")
 	assert.Equal(t, "podname-containername", service.ID)
 	assert.Contains(t, service.Tags, "kubernetes")
+	assert.Contains(t, service.Tags, "production")
 
 	isEnabledByAnnotation := podInfo.isRegisterEnabled()
 	assert.Equal(t, true, isEnabledByAnnotation)
