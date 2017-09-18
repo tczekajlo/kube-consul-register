@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -28,17 +29,19 @@ import (
 // "ConsulRegisterServiceNameAnnotation" is a name of annotation key for `service.name` option.
 // "CreatedByAnnotation" represents the key used to store the spec(json)
 // used to create the resource
+// "ExpectedContainerNamesAnnotation" is a name of container or list of names (separated by comma)
+// which are take into account during register process.
 const (
 	ConsulRegisterEnabledAnnotation     string = "consul.register/enabled"
 	ConsulRegisterServiceNameAnnotation string = "consul.register/service.name"
 	CreatedByAnnotation                 string = "kubernetes.io/created-by"
+	ExpectedContainerNamesAnnotation    string = "consul.register/pod.container.name"
 )
 
 var (
-	addedPods           = make(map[types.UID]bool)
-	addedContainers     = make(map[string]bool)
-	addedServices       = make(map[string]bool)
-	addedConsulServices map[string]string
+	addedPods       = make(map[types.UID]bool)
+	addedContainers = make(map[string]bool)
+	addedServices   = make(map[string]bool)
 
 	consulAgents map[string]*consul.Adapter
 )
@@ -125,7 +128,7 @@ func (c *Controller) Clean() error {
 		return err
 	}
 
-	// Make list of Kubernetes' PODs
+	// Make list of Kubernetes PODs
 	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
 		LabelSelector: c.cfg.Controller.PodLabelSelector,
 	})
@@ -354,6 +357,11 @@ func eventUpdateFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 				continue
 			}
 
+			if !podInfo.expectedContainerNames(container.Name) {
+				glog.Infof("Container %s is not on list of allowed containers. Use %s annotation. Omitted.", container.Name, ExpectedContainerNamesAnnotation)
+				continue
+			}
+
 			glog.Infof("Container %s in POD %s has status: Ready:%t", container.Name, podInfo.Name, container.Ready)
 
 			//Add service to consul
@@ -452,6 +460,20 @@ func (p *PodInfo) isRegisterEnabled() bool {
 		return false
 	}
 	return true
+}
+
+func (p *PodInfo) expectedContainerNames(containerName string) bool {
+	if value, ok := p.Annotations[ExpectedContainerNamesAnnotation]; ok {
+		for _, name := range strings.Split(value, ",") {
+			if containerName == name {
+				return true
+			}
+		}
+	} else {
+		return true
+	}
+
+	return false
 }
 
 func (p *PodInfo) livenessProbeToConsulCheck(probe *v1.Probe) *consulapi.AgentServiceCheck {
