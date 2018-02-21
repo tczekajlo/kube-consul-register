@@ -342,13 +342,15 @@ func (c *Controller) watchServices() {
 				timer := prometheus.NewTimer(metrics.FuncDuration.WithLabelValues("update"))
 				defer timer.ObserveDuration()
 				if !isRegisterEnabled(newObj) {
-					return
+					// Deregister the service on update if disabled
+					c.mutex.Lock()
+					c.eventDeleteFunc(newObj)
+					c.mutex.Unlock()
+				} else {
+					c.mutex.Lock()
+					c.eventAddFunc(newObj)
+					c.mutex.Unlock()
 				}
-
-				c.mutex.Lock()
-				c.eventAddFunc(newObj)
-				c.mutex.Unlock()
-
 			},
 		},
 	)
@@ -464,10 +466,6 @@ func (c *Controller) getNodesIPs() ([]string, error) {
 }
 
 func (c *Controller) eventDeleteFunc(obj interface{}) error {
-	if !isRegisterEnabled(obj) {
-		return nil
-	}
-
 	var nodesIPs []string
 	var ports []int32
 	var err error
@@ -489,13 +487,18 @@ func (c *Controller) eventDeleteFunc(obj interface{}) error {
 			}
 		}
 
-		// Now is time to add service to Consul
+		// Now is time to deregister services from Consul
 		for _, nodeAddress := range nodesIPs {
 			for _, port := range ports {
 				// Add to Consul
 				service, err := c.createConsulService(obj.(*v1.Service), nodeAddress, port)
 				if err != nil {
 					glog.Errorf("Cannot create Consul service: %s", err)
+					continue
+				}
+				// Check if service's already added
+				if _, ok := allAddedServices[service.ID]; !ok {
+					glog.V(3).Infof("Service %s has already been deleted in Consul", service.ID)
 					continue
 				}
 				consulAgent := c.consulInstance.New(c.cfg, nodeAddress, "")
