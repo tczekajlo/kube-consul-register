@@ -89,7 +89,7 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 			consulAgents[node.ObjectMeta.Name] = consulAgent
 		}
 	} else if c.cfg.Controller.RegisterMode == config.RegisterPodMode {
-		pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+		pods, err := c.clientset.Core().Pods(c.namespace).List(v1.ListOptions{
 			LabelSelector: c.cfg.Controller.PodLabelSelector,
 		})
 		if err != nil {
@@ -129,7 +129,7 @@ func (c *Controller) Clean() error {
 	}
 
 	// Make list of Kubernetes PODs
-	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+	pods, err := c.clientset.Core().Pods(c.namespace).List(v1.ListOptions{
 		LabelSelector: c.cfg.Controller.PodLabelSelector,
 	})
 	if err != nil {
@@ -196,7 +196,7 @@ func (c *Controller) Sync() error {
 	}
 	glog.V(3).Infof("Added services: %#v", addedConsulServices)
 
-	pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+	pods, err := c.clientset.Core().Pods(c.namespace).List(v1.ListOptions{
 		LabelSelector: c.cfg.Controller.PodLabelSelector,
 	})
 	if err != nil {
