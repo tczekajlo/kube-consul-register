@@ -450,7 +450,7 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 		}
 		for _, port := range obj.(*v1.Service).Spec.Ports {
 			if port.Protocol == v1.ProtocolTCP {
-				ports = append(ports, port.port)
+				ports = append(ports, port.NodePort)
 			}
 		}
 
