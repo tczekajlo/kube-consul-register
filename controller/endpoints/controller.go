@@ -63,7 +63,7 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 		consulAgents[c.cfg.Controller.ConsulAddress] = consulAgent
 
 	} else if c.cfg.Controller.RegisterMode == config.RegisterNodeMode {
-		nodes, err := c.clientset.Core().Nodes().List(v1.ListOptions{
+		nodes, err := c.clientset.CoreV1().Nodes().List(v1.ListOptions{
 			LabelSelector: c.cfg.Controller.ConsulNodeSelector,
 		})
 		if err != nil {
@@ -76,7 +76,7 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 			consulAgents[node.ObjectMeta.Name] = consulAgent
 		}
 	} else if c.cfg.Controller.RegisterMode == config.RegisterPodMode {
-		pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+		pods, err := c.clientset.CoreV1().Pods("").List(v1.ListOptions{
 			LabelSelector: c.cfg.Controller.PodLabelSelector,
 		})
 		if err != nil {
@@ -114,7 +114,7 @@ func (c *Controller) Clean() error {
 		return err
 	}
 
-	endpoints, err := c.clientset.Core().Endpoints("").List(v1.ListOptions{})
+	endpoints, err := c.clientset.CoreV1().Endpoints("").List(v1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func (c *Controller) Sync() error {
 	}
 	glog.V(3).Infof("Added services: %#v", addedConsulServices)
 
-	endpoints, err := c.clientset.Core().Endpoints("").List(v1.ListOptions{})
+	endpoints, err := c.clientset.CoreV1().Endpoints("").List(v1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func (c *Controller) Sync() error {
 
 // Watch watches events in K8S cluster
 func (c *Controller) Watch() {
-	watchlist := cache.NewListWatchFromClient(c.clientset.Core().RESTClient(), "endpoints", c.namespace,
+	watchlist := cache.NewListWatchFromClient(c.clientset.CoreV1().RESTClient(), "endpoints", c.namespace,
 		fields.Everything())
 	_, controller := cache.NewInformer(
 		watchlist,
@@ -380,7 +380,7 @@ func (c *Controller) eventUpdateFunc(oldObj interface{}, newObj interface{}) err
 }
 
 func (c *Controller) getPod(namespace string, podName string) (*v1.Pod, error) {
-	pod, err := c.clientset.Core().Pods(namespace).Get(podName)
+	pod, err := c.clientset.CoreV1().Pods(namespace).Get(podName)
 	if err != nil {
 		return nil, err
 	}

@@ -57,7 +57,7 @@ var config = &Config{}
 func Load(clientset *kubernetes.Clientset, namespace string, name string) (*Config, error) {
 	var filledConfig *Config
 
-	cfg, err := clientset.Core().ConfigMaps(namespace).Get(name)
+	cfg, err := clientset.CoreV1().ConfigMaps(namespace).Get(name)
 	if err != nil {
 		return config, fmt.Errorf(err.Error())
 	}

@@ -62,7 +62,7 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 		consulAgents[c.cfg.Controller.ConsulAddress] = consulAgent
 
 	} else if c.cfg.Controller.RegisterMode == config.RegisterNodeMode {
-		nodes, err := c.clientset.Core().Nodes().List(v1.ListOptions{
+		nodes, err := c.clientset.CoreV1().Nodes().List(v1.ListOptions{
 			LabelSelector: c.cfg.Controller.ConsulNodeSelector,
 		})
 		if err != nil {
@@ -75,7 +75,7 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 			consulAgents[node.ObjectMeta.Name] = consulAgent
 		}
 	} else if c.cfg.Controller.RegisterMode == config.RegisterPodMode {
-		pods, err := c.clientset.Core().Pods("").List(v1.ListOptions{
+		pods, err := c.clientset.CoreV1().Pods("").List(v1.ListOptions{
 			LabelSelector: c.cfg.Controller.PodLabelSelector,
 		})
 		if err != nil {
@@ -116,7 +116,7 @@ func (c *Controller) Clean() error {
 	}
 	glog.V(3).Infof("Added services: %#v", addedConsulServices)
 
-	allServices, err := c.clientset.Core().Services(c.namespace).List(v1.ListOptions{})
+	allServices, err := c.clientset.CoreV1().Services(c.namespace).List(v1.ListOptions{})
 	if err != nil {
 		c.mutex.Unlock()
 		return err
@@ -181,7 +181,7 @@ func (c *Controller) Sync() error {
 	}
 	glog.V(3).Infof("Added services: %#v", addedConsulServices)
 
-	allServices, err := c.clientset.Core().Services(c.namespace).List(v1.ListOptions{})
+	allServices, err := c.clientset.CoreV1().Services(c.namespace).List(v1.ListOptions{})
 	if err != nil {
 		c.mutex.Unlock()
 		return err
@@ -272,7 +272,7 @@ func (c *Controller) Watch() {
 }
 
 func (c *Controller) watchNodes() {
-	watchlist := cache.NewListWatchFromClient(c.clientset.Core().RESTClient(), "nodes", c.namespace,
+	watchlist := cache.NewListWatchFromClient(c.clientset.CoreV1().RESTClient(), "nodes", c.namespace,
 		fields.Everything())
 	_, controller := cache.NewInformer(
 		watchlist,
@@ -282,7 +282,7 @@ func (c *Controller) watchNodes() {
 			AddFunc: func(obj interface{}) {
 				c.mutex.Lock()
 				glog.Info("Add node.")
-				allServices, err := c.clientset.Core().Services(c.namespace).List(v1.ListOptions{})
+				allServices, err := c.clientset.CoreV1().Services(c.namespace).List(v1.ListOptions{})
 				if err != nil {
 					c.mutex.Unlock()
 				}
@@ -311,7 +311,7 @@ func (c *Controller) watchNodes() {
 }
 
 func (c *Controller) watchServices() {
-	watchlist := cache.NewListWatchFromClient(c.clientset.Core().RESTClient(), "services", c.namespace,
+	watchlist := cache.NewListWatchFromClient(c.clientset.CoreV1().RESTClient(), "services", c.namespace,
 		fields.Everything())
 	_, controller := cache.NewInformer(
 		watchlist,
@@ -486,7 +486,7 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 }
 
 func (c *Controller) getNodesIPs() ([]string, error) {
-	nodes, err := c.clientset.Core().Nodes().List(v1.ListOptions{})
+	nodes, err := c.clientset.CoreV1().Nodes().List(v1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -558,7 +558,7 @@ func (c *Controller) eventDeleteFunc(obj interface{}) error {
 }
 
 func (c *Controller) getPod(namespace string, podName string) (*v1.Pod, error) {
-	pod, err := c.clientset.Core().Pods(namespace).Get(podName)
+	pod, err := c.clientset.CoreV1().Pods(namespace).Get(podName)
 	if err != nil {
 		return nil, err
 	}
