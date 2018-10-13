@@ -36,8 +36,7 @@ $(PACKAGES): check-deps format
 	cd $(GOPATH)/src/$@; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gas -D errcheck
 
 check-deps:
-	@which gometalinter > /dev/null || \
-	(go get github.com/alecthomas/gometalinter && gometalinter --install)
+	@which gometalinter > /dev/null || curl -L https://git.io/vp6lP | sh
 
 check: $(PACKAGES)
 
