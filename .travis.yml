@@ -8,6 +8,7 @@ before_install:
   - mkdir -p $GOPATH/bin
 
 install:
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - export PATH=$PATH:`pwd`/linux-amd64/
 
 script:
