@@ -30,7 +30,6 @@ const (
 
 var (
 	allAddedServices = make(map[string]bool)
-	addedServices    = make(map[string]bool)
 
 	consulAgents map[string]*consul.Adapter
 )
@@ -555,15 +554,6 @@ func (c *Controller) eventDeleteFunc(obj interface{}) error {
 		}
 	}
 	return nil
-}
-
-func (c *Controller) getPod(namespace string, podName string) (*v1.Pod, error) {
-	pod, err := c.clientset.CoreV1().Pods(namespace).Get(podName)
-	if err != nil {
-		return nil, err
-	}
-
-	return pod, nil
 }
 
 func (c *Controller) createConsulService(svc *v1.Service, address string, port int32) (*consulapi.AgentServiceRegistration, error) {
