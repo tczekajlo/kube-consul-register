@@ -291,7 +291,9 @@ func (c *Controller) watchNodes() {
 						continue
 					}
 
-					c.eventAddFunc(&service)
+					if err := c.eventAddFunc(&service); err != nil {
+						glog.Errorf("Failed to add node: %s", err)
+					}
 				}
 				c.mutex.Unlock()
 			},
@@ -323,7 +325,9 @@ func (c *Controller) watchServices() {
 				}
 
 				c.mutex.Lock()
-				c.eventAddFunc(obj)
+				if err := c.eventAddFunc(obj); err != nil {
+					glog.Errorf("Failed to add services: %s", err)
+				}
 				c.mutex.Unlock()
 			},
 			DeleteFunc: func(obj interface{}) {
@@ -334,7 +338,9 @@ func (c *Controller) watchServices() {
 				}
 
 				c.mutex.Lock()
-				c.eventDeleteFunc(obj)
+				if err := c.eventDeleteFunc(obj); err != nil {
+					glog.Errorf("Failed to delete services: %s", err)
+				}
 				c.mutex.Unlock()
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
@@ -343,11 +349,15 @@ func (c *Controller) watchServices() {
 				if !isRegisterEnabled(newObj) {
 					// Deregister the service on update if disabled
 					c.mutex.Lock()
-					c.eventDeleteFunc(newObj)
+					if err := c.eventDeleteFunc(newObj); err != nil {
+						glog.Errorf("Failed to delete services during update: %s", err)
+					}
 					c.mutex.Unlock()
 				} else {
 					c.mutex.Lock()
-					c.eventAddFunc(newObj)
+					if err := c.eventAddFunc(newObj); err != nil {
+						glog.Errorf("Failed to add services during update: %s", err)
+					}
 					c.mutex.Unlock()
 				}
 			},
