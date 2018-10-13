@@ -29,9 +29,7 @@ const (
 )
 
 var (
-	addedEndpoints      = make(map[types.UID]bool)
-	addedServices       = make(map[string]bool)
-	addedConsulServices map[string]string
+	addedEndpoints = make(map[types.UID]bool)
 
 	consulAgents map[string]*consul.Adapter
 )
