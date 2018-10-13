@@ -12,7 +12,7 @@ var (
 		[]string{"operation"},
 	)
 
-	// PodFailure returns counter for pod_successes_total metric
+	// PodSuccess returns counter for pod_successes_total metric
 	PodSuccess = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "pod_successes_total",
