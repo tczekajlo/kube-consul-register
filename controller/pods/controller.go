@@ -151,7 +151,7 @@ func (c *Controller) Clean() error {
 			addedServices[serviceID] = true
 		}
 
-		podsInCluster = append(podsInCluster, podInfo)
+		podsInCluster = append(podsInCluster, podInfo) // nolint: megacheck
 	}
 	//Deletion of inactive services
 	//Delete all services which doesn't exists in Consul
