@@ -219,7 +219,9 @@ func (c *Controller) Sync() error {
 			// container from addedContainers map and call update.
 			if _, ok := addedConsulServices[serviceID]; !ok {
 				delete(addedContainers, container.ContainerID)
-				eventUpdateFunc(&pod, c.consulInstance, c.cfg)
+				if err := eventUpdateFunc(&pod, c.consulInstance, c.cfg); err != nil {
+					glog.Errorf("Failed to sync pod: %s: %s", podInfo.Name, err)
+				}
 			}
 		}
 	}
@@ -256,7 +258,9 @@ func (c *Controller) Watch() {
 					return
 				}
 				c.mutex.Lock()
-				eventDeleteFunc(obj, c.consulInstance, c.cfg)
+				if err := eventDeleteFunc(obj, c.consulInstance, c.cfg); err != nil {
+					glog.Errorf("Failed to delete pods: %s", err)
+				}
 				c.mutex.Unlock()
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
@@ -269,7 +273,9 @@ func (c *Controller) Watch() {
 					return
 				}
 				c.mutex.Lock()
-				eventUpdateFunc(newObj, c.consulInstance, c.cfg)
+				if err := eventUpdateFunc(newObj, c.consulInstance, c.cfg); err != nil {
+					glog.Errorf("Failed to update pods: %s", err)
+				}
 				c.mutex.Unlock()
 			},
 		},
