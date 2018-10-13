@@ -192,7 +192,9 @@ func (c *Controller) Sync() error {
 			continue
 		}
 
-		c.eventUpdateFunc(&endpoint, &endpoint)
+		if err := c.eventUpdateFunc(&endpoint, &endpoint); err != nil {
+			glog.Errorf("Failed to sync endpoint %s: %s", endpoint.GetName(), err)
+		}
 	}
 
 	c.mutex.Unlock()
@@ -218,7 +220,9 @@ func (c *Controller) Watch() {
 
 				c.mutex.Lock()
 				glog.Info("Endpoint deletion")
-				c.eventDeleteFunc(obj)
+				if err := c.eventDeleteFunc(obj); err != nil {
+					glog.Errorf("Failed to delete endpoints: %s", err)
+				}
 				c.mutex.Unlock()
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
@@ -230,7 +234,10 @@ func (c *Controller) Watch() {
 				}
 
 				c.mutex.Lock()
-				c.eventUpdateFunc(oldObj, newObj)
+				glog.Info("Endpoint updation")
+				if err := c.eventUpdateFunc(oldObj, newObj); err != nil {
+					glog.Errorf("Failed to update endpoints: %s", err)
+				}
 				c.mutex.Unlock()
 
 			},
