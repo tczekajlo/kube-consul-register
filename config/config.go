@@ -159,7 +159,7 @@ func (c *Config) fillConfig(data map[string]string) (*Config, error) {
 		case string(RegisterPodMode):
 			c.Controller.RegisterMode = RegisterPodMode
 		default:
-			glog.Warning("Wrong value of 'register_mode' option. Permitted values: %s|%s|%s, is %s",
+			glog.Warningf("Wrong value of 'register_mode' option. Permitted values: %s|%s|%s, is %s",
 				RegisterSingleMode, RegisterNodeMode, RegisterPodMode, value)
 
 			c.Controller.RegisterMode = RegisterSingleMode
