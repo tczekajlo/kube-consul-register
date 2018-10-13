@@ -8,9 +8,6 @@ before_install:
   - mkdir -p $GOPATH/bin
 
 install:
-  - go get github.com/stretchr/testify/assert
-  - wget https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz
-  - tar -zxvf glide-*.tar.gz
   - export PATH=$PATH:`pwd`/linux-amd64/
 
 script:

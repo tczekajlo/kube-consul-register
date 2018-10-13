@@ -41,7 +41,10 @@ check-deps:
 check: $(PACKAGES)
 
 vendor:
-	glide install --strip-vendor
+	dep ensure -v
+
+vendor-update:
+	dep ensure -v -update
 
 format:
 	goimports -w -l $(APP_SOURCES)
