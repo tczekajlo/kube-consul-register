@@ -57,7 +57,7 @@ var config = &Config{}
 func Load(clientset *kubernetes.Clientset, namespace string, name string) (*Config, error) {
 	var filledConfig *Config
 
-	cfg, err := clientset.Core().ConfigMaps(namespace).Get(name)
+	cfg, err := clientset.CoreV1().ConfigMaps(namespace).Get(name)
 	if err != nil {
 		return config, fmt.Errorf(err.Error())
 	}
@@ -159,7 +159,7 @@ func (c *Config) fillConfig(data map[string]string) (*Config, error) {
 		case string(RegisterPodMode):
 			c.Controller.RegisterMode = RegisterPodMode
 		default:
-			glog.Warning("Wrong value of 'register_mode' option. Permitted values: %s|%s|%s, is %s",
+			glog.Warningf("Wrong value of 'register_mode' option. Permitted values: %s|%s|%s, is %s",
 				RegisterSingleMode, RegisterNodeMode, RegisterPodMode, value)
 
 			c.Controller.RegisterMode = RegisterSingleMode
