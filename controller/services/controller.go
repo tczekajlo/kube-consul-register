@@ -406,28 +406,19 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 	var ports []int32
 	var err error
 
-	switch serviceType := obj.(*v1.Service).Spec.Type; serviceType {
+	serviceObj := obj.(*v1.Service)
+	switch serviceType := serviceObj.Spec.Type; serviceType {
 	case v1.ServiceTypeNodePort:
-		// Check if ExternalIPs is empty
-		if len(obj.(*v1.Service).Spec.ExternalIPs) > 0 {
-			nodesIPs = obj.(*v1.Service).Spec.ExternalIPs
-		} else {
-			nodesIPs, err = c.getNodesIPs()
-			if err != nil {
-				return err
-			}
-		}
-		for _, port := range obj.(*v1.Service).Spec.Ports {
-			if port.Protocol == v1.ProtocolTCP {
-				ports = append(ports, port.NodePort)
-			}
+		nodesIPs, ports, err = c.getNodesRunningServicePods(serviceObj)
+		if err != nil {
+			return err
 		}
 
 		// Now is time to add service to Consul
 		for _, nodeAddress := range nodesIPs {
 			for _, port := range ports {
 				// Add to Consul
-				service, err := c.createConsulService(obj.(*v1.Service), nodeAddress, port)
+				service, err := c.createConsulService(serviceObj, nodeAddress, port)
 				if err != nil {
 					glog.Errorf("Cannot create Consul service: %s", err)
 					continue
@@ -445,19 +436,19 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 					metrics.ConsulFailure.WithLabelValues("register", consulAgent.Config.Address).Inc()
 				} else {
 					allAddedServices[service.ID] = true
-					glog.Infof("Service %s has been registered in Consul with ID: %s", obj.(*v1.Service).ObjectMeta.Name, service.ID)
+					glog.Infof("Service %s has been registered in Consul with ID: %s", serviceObj.ObjectMeta.Name, service.ID)
 					metrics.ConsulSuccess.WithLabelValues("register", consulAgent.Config.Address).Inc()
 				}
 			}
 		}
 	case v1.ServiceTypeClusterIP:
 		// Check if ExternalIPs is empty
-		if len(obj.(*v1.Service).Spec.ExternalIPs) > 0 {
-			nodesIPs = obj.(*v1.Service).Spec.ExternalIPs
+		if len(serviceObj.Spec.ExternalIPs) > 0 {
+			nodesIPs = serviceObj.Spec.ExternalIPs
 		} else {
 			return nil
 		}
-		for _, port := range obj.(*v1.Service).Spec.Ports {
+		for _, port := range serviceObj.Spec.Ports {
 			if port.Protocol == v1.ProtocolTCP {
 				ports = append(ports, port.NodePort)
 			}
@@ -467,7 +458,7 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 		for _, nodeAddress := range nodesIPs {
 			for _, port := range ports {
 				// Add to Consul
-				service, err := c.createConsulService(obj.(*v1.Service), nodeAddress, port)
+				service, err := c.createConsulService(serviceObj, nodeAddress, port)
 				if err != nil {
 					glog.Errorf("Cannot create Consul service: %s", err)
 					continue
@@ -485,7 +476,7 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 					metrics.ConsulFailure.WithLabelValues("register", consulAgent.Config.Address).Inc()
 				} else {
 					allAddedServices[service.ID] = true
-					glog.Infof("Service %s has been registered in Consul with ID: %s", obj.(*v1.Service).ObjectMeta.Name, service.ID)
+					glog.Infof("Service %s has been registered in Consul with ID: %s", serviceObj.ObjectMeta.Name, service.ID)
 					metrics.ConsulSuccess.WithLabelValues("register", consulAgent.Config.Address).Inc()
 				}
 			}
@@ -494,53 +485,24 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 	return nil
 }
 
-func (c *Controller) getNodesIPs() ([]string, error) {
-	nodes, err := c.clientset.CoreV1().Nodes().List(v1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	var addresses []string
-	for _, node := range nodes.Items {
-		for _, address := range node.Status.Addresses {
-			switch addressType := address.Type; addressType {
-			case v1.NodeExternalIP:
-				addresses = append(addresses, address.Address)
-			case v1.NodeInternalIP:
-				addresses = append(addresses, address.Address)
-			}
-		}
-	}
-	return addresses, nil
-}
-
 func (c *Controller) eventDeleteFunc(obj interface{}) error {
 	var nodesIPs []string
 	var ports []int32
 	var err error
 
-	switch serviceType := obj.(*v1.Service).Spec.Type; serviceType {
+	serviceObj := obj.(*v1.Service)
+	switch serviceType := serviceObj.Spec.Type; serviceType {
 	case v1.ServiceTypeNodePort:
-		// Check if ExternalIPs is empty
-		if len(obj.(*v1.Service).Spec.ExternalIPs) > 0 {
-			nodesIPs = obj.(*v1.Service).Spec.ExternalIPs
-		} else {
-			nodesIPs, err = c.getNodesIPs()
-			if err != nil {
-				return err
-			}
-		}
-		for _, port := range obj.(*v1.Service).Spec.Ports {
-			if port.Protocol == v1.ProtocolTCP {
-				ports = append(ports, port.NodePort)
-			}
+		nodesIPs, ports, err = c.getNodesRunningServicePods(serviceObj)
+		if err != nil {
+			return err
 		}
 
 		// Now is time to deregister services from Consul
 		for _, nodeAddress := range nodesIPs {
 			for _, port := range ports {
 				// Add to Consul
-				service, err := c.createConsulService(obj.(*v1.Service), nodeAddress, port)
+				service, err := c.createConsulService(serviceObj, nodeAddress, port)
 				if err != nil {
 					glog.Errorf("Cannot create Consul service: %s", err)
 					continue
@@ -556,7 +518,7 @@ func (c *Controller) eventDeleteFunc(obj interface{}) error {
 					glog.Errorf("Cannot deregister service in Consul: %s", err)
 					metrics.ConsulFailure.WithLabelValues("deregister", consulAgent.Config.Address).Inc()
 				} else {
-					glog.Infof("Service %s has been deregistered in Consul with ID: %s", obj.(*v1.Service).ObjectMeta.Name, service.ID)
+					glog.Infof("Service %s has been deregistered in Consul with ID: %s", serviceObj.ObjectMeta.Name, service.ID)
 					metrics.ConsulSuccess.WithLabelValues("deregister", consulAgent.Config.Address).Inc()
 					delete(allAddedServices, service.ID)
 				}
@@ -564,6 +526,58 @@ func (c *Controller) eventDeleteFunc(obj interface{}) error {
 		}
 	}
 	return nil
+}
+
+func (c *Controller) getNodesRunningServicePods(service *v1.Service) (hostIPs []string, nodePorts []int32, err error) {
+	for _, port := range service.Spec.Ports {
+		if port.Protocol == v1.ProtocolTCP {
+			nodePorts = append(nodePorts, port.NodePort)
+		}
+	}
+
+	if len(service.Spec.ExternalIPs) > 0 {
+		hostIPs = append(hostIPs, service.Spec.ExternalIPs...)
+		return hostIPs, nodePorts, nil
+	}
+
+	podHosts, err := c.getPodHostIPs(service.Spec.Selector)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	hostIPs = append(hostIPs, podHosts...)
+
+	return hostIPs, nodePorts, nil
+}
+
+func (c *Controller) getPodHostIPs(selectors map[string]string) ([]string, error) {
+	b := strings.Builder{}
+	for k, v := range selectors {
+		b.WriteString(k)
+		b.WriteRune('=')
+		b.WriteString(v)
+		b.WriteRune(',')
+	}
+
+	selector := b.String()[:len(b.String())-1]
+
+	glog.V(3).Infof("Getting host IPs of pods matching selector: %q", selector)
+
+	podList, err := c.clientset.CoreV1().Pods(c.namespace).List(
+		v1.ListOptions{
+			LabelSelector: selector,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var addresses []string
+	for _, po := range podList.Items {
+		addresses = append(addresses, po.Status.HostIP)
+	}
+
+	return addresses, nil
 }
 
 func (c *Controller) createConsulService(svc *v1.Service, address string, port int32) (*consulapi.AgentServiceRegistration, error) {
