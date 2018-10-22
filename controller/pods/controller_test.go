@@ -57,6 +57,8 @@ func TestPodInfoMethods(t *testing.T) {
 	assert.Equal(t, "podname-containername", service.ID)
 	assert.Contains(t, service.Tags, "kubernetes")
 	assert.Contains(t, service.Tags, "production")
+	assert.Contains(t, service.Tags, "pod:podname")
+	assert.Contains(t, service.Tags, "podname")
 
 	isEnabledByAnnotation := podInfo.isRegisterEnabled()
 	assert.Equal(t, true, isEnabledByAnnotation)
