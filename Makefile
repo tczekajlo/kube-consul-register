@@ -38,6 +38,9 @@ $(PACKAGES): check-deps format
 check-deps:
 	@which gometalinter > /dev/null || curl -L https://git.io/vp6lP | sh
 
+test: $(PACKAGES)
+	go test $(TESTARGS) ./...
+
 check: $(PACKAGES)
 
 vendor:
