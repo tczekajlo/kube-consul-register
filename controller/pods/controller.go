@@ -489,6 +489,10 @@ func (p *PodInfo) livenessProbeToConsulCheck(probe *v1.Probe) *consulapi.AgentSe
 		return check
 	}
 
+	if probe.Handler.Exec != nil {
+		return check
+	}
+
 	check.Status = "passing"
 	check.Interval = fmt.Sprintf("%ds", probe.PeriodSeconds)
 	check.Timeout = fmt.Sprintf("%ds", probe.TimeoutSeconds)
