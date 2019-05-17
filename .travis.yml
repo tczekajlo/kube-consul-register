@@ -1,17 +1,10 @@
 language: go
 
 go:
-  - 1.8
-  - master
+  - "1.11.x"
 
-before_install:
-  - mkdir -p $GOPATH/bin
-
-install:
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - export PATH=$PATH:`pwd`/linux-amd64/
+env:
+  - GO111MODULE=on
 
 script:
-  - make clean
-  - make vendor
   - make check

@@ -2,7 +2,6 @@ SHELL := /bin/bash
 
 PREFIX = kube-consul-register
 
-PACKAGES = $(shell go list ./... | grep -v /vendor/)
 TESTARGS ?= -race
 
 CURRENTDIR = $(shell pwd)
@@ -31,23 +30,19 @@ dist/kube-consul-controller:
 docker:
 	docker build -t $(PREFIX):$(VERSION) .
 
-$(PACKAGES): check-deps format
-	go test $(TESTARGS) $@
-	cd $(GOPATH)/src/$@; gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gas -D errcheck
-
 check-deps:
 	@which gometalinter > /dev/null || curl -L https://git.io/vp6lP | sh
 
-test: $(PACKAGES)
-	go test $(TESTARGS) ./...
 
-check: $(PACKAGES)
+check: check-deps format
+	go test -race ./...
+	pushd $(SOURCEDIR); go mod vendor; GO111MODULE=off gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gosec -D errcheck; popd
 
 vendor:
-	dep ensure -v
+	go mod vendor
 
 vendor-update:
-	dep ensure -v -update
+	go mod tidy
 
 format:
 	goimports -w -l $(APP_SOURCES)
