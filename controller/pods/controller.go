@@ -522,6 +522,7 @@ func (p *PodInfo) getContainerLivenessProbe(searchContainer string) *v1.Probe {
 
 func (p *PodInfo) labelsToTags(containerName string) []string {
 	var tags []string
+	tags = append(tags, p.Name)
 	tags = append(tags, fmt.Sprintf("pod:%s", p.Name))
 	tags = append(tags, fmt.Sprintf("node:%s", p.NodeName))
 	tags = append(tags, fmt.Sprintf("container:%s", containerName))

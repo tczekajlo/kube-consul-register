@@ -33,6 +33,7 @@ docker:
 check-deps:
 	@which gometalinter > /dev/null || curl -L https://git.io/vp6lP | sh
 
+
 check: check-deps format
 	go test -race ./...
 	pushd $(SOURCEDIR); go mod vendor; GO111MODULE=off gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gosec -D errcheck; popd
