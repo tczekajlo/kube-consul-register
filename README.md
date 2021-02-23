@@ -11,6 +11,8 @@ kube-consul-register watches Kubernetes events and converts information about PO
         time in seconds, what period of time will be done cleaning of inactive services (default 30m0s)
   -configmap string
         name of the ConfigMap that containes the custom configuration to use (default "default/kube-consul-register-config")
+  -secret string
+        name of the Secret that containts the consul token, key must be consul_token
   -in-cluster
         use in-cluster config. Use always in case when controller is running on Kubernetes cluster (default true)
   -kubeconfig string
