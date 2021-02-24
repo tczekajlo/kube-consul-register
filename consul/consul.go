@@ -3,6 +3,7 @@ package consul
 import (
 	"crypto/tls"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -42,6 +43,13 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 	uri, err = url.Parse(address)
 	if err != nil {
 		glog.Fatalf("bad adapter uri: ")
+	}
+
+	cfg.Consul.HttpClient = &http.Client{
+		Transport:     nil,
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       0,
 	}
 
 	switch uri.Scheme {
