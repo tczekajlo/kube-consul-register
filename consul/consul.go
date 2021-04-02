@@ -3,6 +3,7 @@ package consul
 import (
 	"crypto/tls"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -63,10 +64,13 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 		cfg.Consul.Scheme = uri.Scheme
 		transport := cleanhttp.DefaultPooledTransport()
 		transport.TLSClientConfig = tlsConfig
-		cfg.Consul.HttpClient.Transport = transport
+		cfg.Consul.HttpClient = &http.Client{
+			Transport: transport,
+		}
 		cfg.Consul.Address = uri.Host
 
 	default:
+		cfg.Consul.HttpClient = &http.Client{}
 		cfg.Consul.Address = uri.Host
 	}
 
