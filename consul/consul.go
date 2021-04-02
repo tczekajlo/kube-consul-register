@@ -45,13 +45,6 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 		glog.Fatalf("bad adapter uri: ")
 	}
 
-	cfg.Consul.HttpClient = &http.Client{
-		Transport:     nil,
-		CheckRedirect: nil,
-		Jar:           nil,
-		Timeout:       0,
-	}
-
 	switch uri.Scheme {
 	case "consul-unix":
 		cfg.Consul.Address = strings.TrimPrefix(uri.String(), "consul-")
@@ -71,10 +64,13 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 		cfg.Consul.Scheme = uri.Scheme
 		transport := cleanhttp.DefaultPooledTransport()
 		transport.TLSClientConfig = tlsConfig
-		cfg.Consul.HttpClient.Transport = transport
+		cfg.Consul.HttpClient = &http.Client{
+			Transport: transport,
+		}
 		cfg.Consul.Address = uri.Host
 
 	default:
+		cfg.Consul.HttpClient = &http.Client{}
 		cfg.Consul.Address = uri.Host
 	}
 
