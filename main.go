@@ -34,7 +34,7 @@ var (
 	watchNamespace       = flag.String("watch-namespace", v1.NamespaceAll, "namespace to watch for Pods. Default is to watch all namespaces")
 	kubeconfig           = flag.String("kubeconfig", "./kubeconfig", "absolute path to the kubeconfig file")
 	configMap            = flag.String("configmap", "default/kube-consul-register-config", "name of the ConfigMap that containes the custom configuration to use")
-	secret               = flag.String("secret", "", "name of the secret containing the consul token. Key must be consul_token.")
+	consulSecret         = flag.String("consul-secret", "", "name of the secret containing the consul token, e.g. default/consul. Key must be consul_token.")
 	inClusterConfig      = flag.Bool("in-cluster", false, "use in-cluster config. Use always in case when controller is running on Kubernetes cluster")
 	syncInterval         = flag.Duration("sync-interval", 120*time.Second, "time in seconds, what period of time will be done synchronization")
 	cleanInterval        = flag.Duration("clean-interval", 1800*time.Second, "time in seconds, what period of time will be done cleaning of inactive services")
@@ -96,14 +96,14 @@ func main() {
 		glog.Infof("Current configuration: Controller: %#v, Consul: %#v", cfg.Controller, cfg.Consul)
 	}
 
-	if *secret != "" {
-		namespace, name, err := utils.ParseNsName(*secret)
+	if *consulSecret != "" {
+		namespace, name, err := utils.ParseNsName(*consulSecret)
 		if err != nil {
 			glog.Fatalf("Secret: %v", err)
 		}
 		secretResource, err := clientset.CoreV1().Secrets(namespace).Get(name)
 		if err != nil {
-			glog.Fatalf("can't get secret %s: %s", *secret, err)
+			glog.Fatalf("can't get secret %s: %s", *consulSecret, err)
 		}
 		if value, ok := secretResource.Data["consul_token"]; ok {
 			cfg.Controller.ConsulToken = string(value)
