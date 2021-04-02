@@ -36,13 +36,7 @@ check-deps:
 
 check: check-deps format
 	go test -race ./...
-	pushd $(SOURCEDIR); go mod vendor; GO111MODULE=off gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gosec -D errcheck; popd
-
-vendor:
-	go mod vendor
-
-vendor-update:
-	go mod tidy
+	pushd $(SOURCEDIR); gometalinter --deadline  720s --vendor -D gotype -D dupl -D gocyclo -D gosec -D errcheck; popd
 
 format:
 	goimports -w -l $(APP_SOURCES)
