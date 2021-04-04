@@ -495,7 +495,11 @@ func (c *Controller) eventAddFunc(obj interface{}) error {
 }
 
 func (c *Controller) getNodesIPs() ([]string, error) {
-	nodes, err := c.clientset.CoreV1().Nodes().List(v1.ListOptions{})
+	var listOptions v1.ListOptions
+	if c.cfg.Controller.RegisterMode == config.RegisterNodeMode {
+		listOptions.LabelSelector = c.cfg.Controller.ConsulNodeSelector
+	}
+	nodes, err := c.clientset.CoreV1().Nodes().List(listOptions)
 	if err != nil {
 		return nil, err
 	}
