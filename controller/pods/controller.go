@@ -434,6 +434,7 @@ func (p *PodInfo) PodToConsulService(containerStatus v1.ContainerStatus, cfg *co
 
 	service.ID = fmt.Sprintf("%s-%s", p.Name, containerStatus.Name)
 	service.Tags = p.labelsToTags(containerStatus.Name)
+	service.Meta = p.annotationsToMeta()
 
 	//Add K8sTag from configuration
 	service.Tags = append(service.Tags, cfg.Controller.K8sTag)
@@ -536,6 +537,16 @@ func (p *PodInfo) labelsToTags(containerName string) []string {
 		}
 	}
 	return tags
+}
+
+func (p *PodInfo) annotationsToMeta() map[string]string {
+	meta := make(map[string]string)
+	for key, value := range p.Annotations {
+		if strings.HasPrefix(key, "consul.register/service.meta.") {
+			meta[strings.TrimPrefix(key, "consul.register/service.meta.")] = value
+		}
+	}
+	return meta
 }
 
 func (p *PodInfo) getContainerPort(searchContainer string) int {
