@@ -27,15 +27,17 @@ import (
 // These are valid annotations names which are take into account.
 // "ConsulRegisterEnabledAnnotation" is a name of annotation key for `enabled` option.
 // "ConsulRegisterServiceNameAnnotation" is a name of annotation key for `service.name` option.
+// "ConsulRegisterServiceMetaPrefixAnnotation" is a prefix name of annotation key for `service.meta` option.
 // "CreatedByAnnotation" represents the key used to store the spec(json)
 // used to create the resource
 // "ExpectedContainerNamesAnnotation" is a name of container or list of names (separated by comma)
 // which are take into account during register process.
 const (
-	ConsulRegisterEnabledAnnotation     string = "consul.register/enabled"
-	ConsulRegisterServiceNameAnnotation string = "consul.register/service.name"
-	CreatedByAnnotation                 string = "kubernetes.io/created-by"
-	ExpectedContainerNamesAnnotation    string = "consul.register/pod.container.name"
+	ConsulRegisterEnabledAnnotation           string = "consul.register/enabled"
+	ConsulRegisterServiceNameAnnotation       string = "consul.register/service.name"
+	ConsulRegisterServiceMetaPrefixAnnotation string = "consul.register/service.meta."
+	CreatedByAnnotation                       string = "kubernetes.io/created-by"
+	ExpectedContainerNamesAnnotation          string = "consul.register/pod.container.name"
 )
 
 var (
@@ -542,8 +544,8 @@ func (p *PodInfo) labelsToTags(containerName string) []string {
 func (p *PodInfo) annotationsToMeta() map[string]string {
 	meta := make(map[string]string)
 	for key, value := range p.Annotations {
-		if strings.HasPrefix(key, "consul.register/service.meta.") {
-			meta[strings.TrimPrefix(key, "consul.register/service.meta.")] = value
+		if strings.HasPrefix(key, ConsulRegisterServiceMetaPrefixAnnotation) {
+			meta[strings.TrimPrefix(key, ConsulRegisterServiceMetaPrefixAnnotation)] = value
 		}
 	}
 	return meta
