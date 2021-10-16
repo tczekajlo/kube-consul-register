@@ -20,6 +20,8 @@ func TestPodInfoMethods(t *testing.T) {
 	labels["production"] = "tag"
 	annotations["consul.register/enabled"] = "true"
 	annotations["consul.register/service.name"] = "servicename"
+	annotations["consul.register/service.meta.abc"] = "123"
+	annotations["consul.register/service.meta.XYZ"] = "790_0"
 
 	objPod := &v1.Pod{
 		ObjectMeta: v1.ObjectMeta{
@@ -61,6 +63,8 @@ func TestPodInfoMethods(t *testing.T) {
 	assert.Contains(t, service.Tags, "production")
 	assert.Contains(t, service.Tags, "pod:podname")
 	assert.Contains(t, service.Tags, "podname")
+	assert.Equal(t, service.Meta["abc"], "123")
+	assert.Equal(t, service.Meta["XYZ"], "790_0")
 
 	isEnabledByAnnotation := podInfo.isRegisterEnabled()
 	assert.Equal(t, true, isEnabledByAnnotation)
