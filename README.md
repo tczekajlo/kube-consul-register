@@ -89,6 +89,7 @@ There are available annotations which can be used as pod's annotations.
 |----|-----|-----------|
 |`consul.register/enabled`|`true`\|`false`|Determine if pod should be registered in Consul. This annotation is require in order to register pod as Consul service|
 |`consul.register/service.name`|`service_name`|Determine name of service in Consul. If not given then is used the name of resource which created the POD. Only available if `register_source` is set on `pod`|
+|`consul.register/service.meta.<key>`|`<value>`|Adds `key`/`value` service meta. Eg. `"consul.register/service.meta.redis_version"`=`"4.0"` results in meta `redis_version=4.0`|
 |`consul.register/pod.container.name`|`container_name`|Container name or list of names (next name should be separated by comma) which will be taken into account. If omitted, all containers in POD will be registered|
 |`consul.register/pod.container.probe.liveness`|`true`\|`false`|Use container `Liveness probe` for checks. Default is `true`.
 |`consul.register/pod.container.probe.readiness`|`true`\|`false`|Use container `Readiness probe` for checks. Default is `false`|
