@@ -70,7 +70,7 @@ func TestPodInfoMethods(t *testing.T) {
 	assert.Equal(t, true, isEnabledByAnnotation)
 }
 
-func TestLivenessProbeToConsulCheck(t *testing.T) {
+func TestProbeToConsulCheck(t *testing.T) {
 	t.Parallel()
 	emptyCheck := consulapi.AgentServiceCheck{}
 
@@ -102,11 +102,12 @@ func TestLivenessProbeToConsulCheck(t *testing.T) {
 		},
 	}
 
-	httpCheck := podInfo.livenessProbeToConsulCheck(httpProbe)
-	tcpCheck := podInfo.livenessProbeToConsulCheck(tcpProbe)
-	noProbeCheck := podInfo.livenessProbeToConsulCheck(nil)
-	execCheck := podInfo.livenessProbeToConsulCheck(execProbe)
+	httpCheck := podInfo.probeToConsulCheck(httpProbe, "Liveness Probe")
+	tcpCheck := podInfo.probeToConsulCheck(tcpProbe, "Liveness Probe")
+	noProbeCheck := podInfo.probeToConsulCheck(nil, "Liveness Probe")
+	execCheck := podInfo.probeToConsulCheck(execProbe, "Liveness Probe")
 
+	assert.Equal(t, "Liveness Probe", httpCheck.Name)
 	assert.Equal(t, "http://192.168.8.8:8080/ping", httpCheck.HTTP)
 	assert.Equal(t, "192.168.8.8:5432", tcpCheck.TCP)
 	assert.Equal(t, emptyCheck, *noProbeCheck)

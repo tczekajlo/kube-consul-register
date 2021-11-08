@@ -38,6 +38,8 @@ const (
 	ConsulRegisterServiceMetaPrefixAnnotation string = "consul.register/service.meta."
 	CreatedByAnnotation                       string = "kubernetes.io/created-by"
 	ExpectedContainerNamesAnnotation          string = "consul.register/pod.container.name"
+  ContainerProbeLivenessAnnotation          string = "consul.register/pod.container.probe.liveness"
+	ContainerProbeReadinessAnnotation         string = "consul.register/pod.container.probe.readiness"
 )
 
 var (
@@ -446,8 +448,14 @@ func (p *PodInfo) PodToConsulService(containerStatus v1.ContainerStatus, cfg *co
 		return service, fmt.Errorf("Port's equal to 0")
 	}
 	service.Port = port
-	service.Check = p.livenessProbeToConsulCheck(p.getContainerLivenessProbe(containerStatus.Name))
 	service.Address = p.IP
+
+	if p.isProbeLivenessEnabled() {
+		service.Checks = append(service.Checks, p.probeToConsulCheck(p.getContainerLivenessProbe(containerStatus.Name), "Liveness Probe"))
+	}
+	if p.isProbeReadinessEnabled() {
+		service.Checks = append(service.Checks, p.probeToConsulCheck(p.getContainerReadinessProbe(containerStatus.Name), "Readiness Probe"))
+	}
 
 	return service, nil
 }
@@ -471,6 +479,44 @@ func (p *PodInfo) isRegisterEnabled() bool {
 	return true
 }
 
+func (p *PodInfo) isProbeLivenessEnabled() bool {
+	// Default if not set should be true
+	if value, ok := p.Annotations[ContainerProbeLivenessAnnotation]; ok {
+		enabled, err := strconv.ParseBool(value)
+		if err != nil {
+			glog.Errorf("Can't convert value of %s annotation: %s", ContainerProbeLivenessAnnotation, err)
+			return true
+		}
+		if enabled {
+			glog.Infof("Pod %s in %s namespace has liveness probe enabled by annotation. Value: %s", p.Name, p.Namespace, value)
+			return true
+		} else {
+			glog.Infof("Pod %s in %s namespace has liveness probe disabled by annotation. Value: %s", p.Name, p.Namespace, value)
+			return false
+		}
+	}
+	return true
+}
+
+func (p *PodInfo) isProbeReadinessEnabled() bool {
+	// Default if not set should be false
+	if value, ok := p.Annotations[ContainerProbeReadinessAnnotation]; ok {
+		enabled, err := strconv.ParseBool(value)
+		if err != nil {
+			glog.Errorf("Can't convert value of %s annotation: %s", ContainerProbeReadinessAnnotation, err)
+			return false
+		}
+		if enabled {
+			glog.Infof("Pod %s in %s namespace has readiness probe enabled by annotation. Value: %s", p.Name, p.Namespace, value)
+			return true
+		} else {
+			glog.Infof("Pod %s in %s namespace has readiness probe disabled by annotation. Value: %s", p.Name, p.Namespace, value)
+			return false
+		}
+	}
+	return false
+}
+
 func (p *PodInfo) expectedContainerNames(containerName string) bool {
 	if value, ok := p.Annotations[ExpectedContainerNamesAnnotation]; ok {
 		for _, name := range strings.Split(value, ",") {
@@ -485,7 +531,7 @@ func (p *PodInfo) expectedContainerNames(containerName string) bool {
 	return false
 }
 
-func (p *PodInfo) livenessProbeToConsulCheck(probe *v1.Probe) *consulapi.AgentServiceCheck {
+func (p *PodInfo) probeToConsulCheck(probe *v1.Probe, probeName string) *consulapi.AgentServiceCheck {
 	check := &consulapi.AgentServiceCheck{}
 
 	if probe == nil {
@@ -496,6 +542,7 @@ func (p *PodInfo) livenessProbeToConsulCheck(probe *v1.Probe) *consulapi.AgentSe
 		return check
 	}
 
+	check.Name = probeName
 	check.Status = "passing"
 	check.Interval = fmt.Sprintf("%ds", probe.PeriodSeconds)
 	check.Timeout = fmt.Sprintf("%ds", probe.TimeoutSeconds)
@@ -518,6 +565,15 @@ func (p *PodInfo) getContainerLivenessProbe(searchContainer string) *v1.Probe {
 	for _, container := range p.Containers {
 		if container.Name == searchContainer {
 			return container.LivenessProbe
+		}
+	}
+	return nil
+}
+
+func (p *PodInfo) getContainerReadinessProbe(searchContainer string) *v1.Probe {
+	for _, container := range p.Containers {
+		if container.Name == searchContainer {
+			return container.ReadinessProbe
 		}
 	}
 	return nil
