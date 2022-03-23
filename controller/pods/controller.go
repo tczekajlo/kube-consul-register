@@ -16,7 +16,7 @@ import (
 	"github.com/tczekajlo/kube-consul-register/utils"
 
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/pkg/types"
 	"k8s.io/client-go/tools/cache"
@@ -38,7 +38,7 @@ const (
 	ConsulRegisterServiceMetaPrefixAnnotation string = "consul.register/service.meta."
 	CreatedByAnnotation                       string = "kubernetes.io/created-by"
 	ExpectedContainerNamesAnnotation          string = "consul.register/pod.container.name"
-  ContainerProbeLivenessAnnotation          string = "consul.register/pod.container.probe.liveness"
+	ContainerProbeLivenessAnnotation          string = "consul.register/pod.container.probe.liveness"
 	ContainerProbeReadinessAnnotation         string = "consul.register/pod.container.probe.readiness"
 )
 
@@ -451,10 +451,16 @@ func (p *PodInfo) PodToConsulService(containerStatus v1.ContainerStatus, cfg *co
 	service.Address = p.IP
 
 	if p.isProbeLivenessEnabled() {
-		service.Checks = append(service.Checks, p.probeToConsulCheck(p.getContainerLivenessProbe(containerStatus.Name), "Liveness Probe"))
+		check := p.probeToConsulCheck(p.getContainerLivenessProbe(containerStatus.Name), "Liveness Probe")
+		if check != nil {
+			service.Checks = append(service.Checks, check)
+		}
 	}
 	if p.isProbeReadinessEnabled() {
-		service.Checks = append(service.Checks, p.probeToConsulCheck(p.getContainerReadinessProbe(containerStatus.Name), "Readiness Probe"))
+		check := p.probeToConsulCheck(p.getContainerReadinessProbe(containerStatus.Name), "Readiness Probe")
+		if check != nil {
+			service.Checks = append(service.Checks, check)
+		}
 	}
 
 	return service, nil
@@ -535,11 +541,11 @@ func (p *PodInfo) probeToConsulCheck(probe *v1.Probe, probeName string) *consula
 	check := &consulapi.AgentServiceCheck{}
 
 	if probe == nil {
-		return check
+		return nil
 	}
 
 	if probe.Handler.Exec != nil {
-		return check
+		return nil
 	}
 
 	check.Name = probeName
