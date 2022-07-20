@@ -1,0 +1,6 @@
+examples/
+.gitignore
+.travis.yml
+Dockerfile
+Readme.md
+LICENSE
