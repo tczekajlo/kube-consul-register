@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
   name: kube-consul-register
@@ -20,3 +20,7 @@ spec:
         args:
         - -logtostderr=true
         - -configmap=default/kube-consul-register
+  selector:
+    matchLabels:
+      app: kube-consul-register
+
