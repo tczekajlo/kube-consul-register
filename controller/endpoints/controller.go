@@ -14,7 +14,7 @@ import (
 	"github.com/tczekajlo/kube-consul-register/utils"
 
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/pkg/types"
 	"k8s.io/client-go/tools/cache"
@@ -406,6 +406,8 @@ func (c *Controller) createConsulService(endpoint *v1.Endpoints, address v1.Endp
 
 	service.Port = int(port.Port)
 	service.Address = address.IP
+
+	glog.V(3).Infof("created service: %s (id: %s) at %s:%d", service.Name, service.ID, service.Address, service.Port)
 
 	return service, nil
 }

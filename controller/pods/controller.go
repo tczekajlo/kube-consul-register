@@ -16,7 +16,7 @@ import (
 	"github.com/tczekajlo/kube-consul-register/utils"
 
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/pkg/types"
 	"k8s.io/client-go/tools/cache"
@@ -38,7 +38,7 @@ const (
 	ConsulRegisterServiceMetaPrefixAnnotation string = "consul.register/service.meta."
 	CreatedByAnnotation                       string = "kubernetes.io/created-by"
 	ExpectedContainerNamesAnnotation          string = "consul.register/pod.container.name"
-  ContainerProbeLivenessAnnotation          string = "consul.register/pod.container.probe.liveness"
+	ContainerProbeLivenessAnnotation          string = "consul.register/pod.container.probe.liveness"
 	ContainerProbeReadinessAnnotation         string = "consul.register/pod.container.probe.readiness"
 )
 
@@ -390,6 +390,7 @@ func eventUpdateFunc(obj interface{}, consulInstance consul.Adapter, cfg *config
 				err = consulAgent.Register(service)
 				if err != nil {
 					glog.Errorf("Can't register service: %s", err)
+					glog.V(3).Infof("%#v", service)
 					metrics.ConsulFailure.WithLabelValues("register", consulAgent.Config.Address).Inc()
 				} else {
 					glog.Infof("Service's been registered, Name: %s, ID: %s", service.Name, service.ID)
@@ -445,10 +446,18 @@ func (p *PodInfo) PodToConsulService(containerStatus v1.ContainerStatus, cfg *co
 
 	port := p.getContainerPort(containerStatus.Name)
 	if port == 0 {
+		glog.Errorf("container (service: %s) doesn't have a port: %d", service.Name, port)
 		return service, fmt.Errorf("Port's equal to 0")
 	}
 	service.Port = port
 	service.Address = p.IP
+
+	glog.V(3).Infof(
+		"Consul service: %s, has liveness: %t, has readiness: %t",
+		service.Name,
+		p.isProbeLivenessEnabled(),
+		p.isProbeReadinessEnabled(),
+	)
 
 	if p.isProbeLivenessEnabled() {
 		service.Checks = append(service.Checks, p.probeToConsulCheck(p.getContainerLivenessProbe(containerStatus.Name), "Liveness Probe"))
@@ -556,7 +565,11 @@ func (p *PodInfo) probeToConsulCheck(probe *v1.Probe, probeName string) *consula
 		check.HTTP = fmt.Sprintf("%s://%s:%d%s", probe.Handler.HTTPGet.Scheme, host, probe.Handler.HTTPGet.Port.IntVal, probe.Handler.HTTPGet.Path)
 	} else if probe.Handler.TCPSocket != nil {
 		check.TCP = fmt.Sprintf("%s:%d", host, probe.Handler.TCPSocket.Port.IntVal)
+	} else {
+		glog.V(3).Infof("Tried to find '%s', but no http/tcp probe found: #%s", probeName, probe.Handler.String())
+		return check
 	}
+
 	glog.V(3).Infof("Consul check: %#v", check)
 	return check
 }
