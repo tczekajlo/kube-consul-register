@@ -16,7 +16,7 @@ LD_FLAGS = -ldflags "-X main.VERSION=$(VERSION) -s -w"
 
 all: build
 
-.PHONY: clean build docker check
+.PHONY: clean build docker check release
 default: build
 build: dist/kube-consul-controller
 
@@ -40,3 +40,6 @@ check: check-deps format
 
 format:
 	goimports -w -l $(APP_SOURCES)
+
+release: clean build docker
+	docker push $(PREFIX):$(VERSION)
