@@ -1,12 +1,13 @@
 package pods
 
 import (
+	"fmt"
 	"testing"
 
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/tczekajlo/kube-consul-register/config"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/util/intstr"
 )
 
@@ -71,45 +72,81 @@ func TestPodInfoMethods(t *testing.T) {
 }
 
 func TestProbeToConsulCheck(t *testing.T) {
-	t.Parallel()
-	emptyCheck := consulapi.AgentServiceCheck{}
+	// t.Parallel()
 
+	testCases := []struct {
+		desc  string
+		probe v1.Probe
+		pod   *PodInfo
+	}{
+		{
+			"http probe",
+			v1.Probe{
+				Handler: v1.Handler{
+					HTTPGet: &v1.HTTPGetAction{
+						Scheme: "http",
+						Path:   "/ping",
+						Port:   intstr.IntOrString{IntVal: 8080},
+					},
+				},
+			},
+			&PodInfo{IP: "192.168.8.8"},
+		},
+		{
+			"tcp probe",
+			v1.Probe{
+				Handler: v1.Handler{
+					TCPSocket: &v1.TCPSocketAction{
+						Port: intstr.IntOrString{IntVal: 5432},
+					},
+				},
+			},
+			&PodInfo{IP: "192.168.8.8"},
+		},
+		// apparently these are stripped
+		{
+			"exec probe",
+			v1.Probe{
+				Handler: v1.Handler{
+					Exec: &v1.ExecAction{
+						Command: []string{"some-command-to-check"},
+					},
+				},
+			},
+			&PodInfo{IP: "192.168.8.8"},
+		},
+	}
+
+	for _, tc := range testCases {
+		check := tc.pod.probeToConsulCheck(&tc.probe, "Liveness Probe")
+
+		if check.Name != "Liveness Probe" {
+			if tc.probe.Exec == nil {
+				t.Errorf("[%s] wrong name: %s", tc.desc, check.Name)
+			}
+		}
+
+		if tc.probe.HTTPGet != nil {
+			assert.Equal(t, "http://192.168.8.8:8080/ping", check.HTTP)
+		}
+
+		if tc.probe.TCPSocket != nil {
+			assert.Equal(t, "192.168.8.8:5432", check.TCP)
+		}
+
+		if tc.probe.Exec != nil {
+			// emptyCheck := consulapi.AgentServiceCheck{}
+			fmt.Println(check.Shell)
+			// assert.Equal(t, emptyCheck, consulapi.AgentServiceCheck{})
+		}
+	}
+}
+
+func TestEmptyNoChecks(t *testing.T) {
+	emptyCheck := consulapi.AgentServiceCheck{}
 	podInfo := &PodInfo{IP: "192.168.8.8"}
 
-	httpProbe := &v1.Probe{
-		Handler: v1.Handler{
-			HTTPGet: &v1.HTTPGetAction{
-				Scheme: "http",
-				Path:   "/ping",
-				Port:   intstr.IntOrString{IntVal: 8080},
-			},
-		},
-	}
-
-	tcpProbe := &v1.Probe{
-		Handler: v1.Handler{
-			TCPSocket: &v1.TCPSocketAction{
-				Port: intstr.IntOrString{IntVal: 5432},
-			},
-		},
-	}
-
-	execProbe := &v1.Probe{
-		Handler: v1.Handler{
-			Exec: &v1.ExecAction{
-				Command: []string{"some-command-to-check"},
-			},
-		},
-	}
-
-	httpCheck := podInfo.probeToConsulCheck(httpProbe, "Liveness Probe")
-	tcpCheck := podInfo.probeToConsulCheck(tcpProbe, "Liveness Probe")
 	noProbeCheck := podInfo.probeToConsulCheck(nil, "Liveness Probe")
-	execCheck := podInfo.probeToConsulCheck(execProbe, "Liveness Probe")
 
-	assert.Equal(t, "Liveness Probe", httpCheck.Name)
-	assert.Equal(t, "http://192.168.8.8:8080/ping", httpCheck.HTTP)
-	assert.Equal(t, "192.168.8.8:5432", tcpCheck.TCP)
 	assert.Equal(t, emptyCheck, *noProbeCheck)
-	assert.Equal(t, emptyCheck, *execCheck)
 }
