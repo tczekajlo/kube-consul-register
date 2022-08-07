@@ -86,11 +86,37 @@ func TestProbeToConsulCheck(t *testing.T) {
 					HTTPGet: &v1.HTTPGetAction{
 						Scheme: "http",
 						Path:   "/ping",
-						Port:   intstr.IntOrString{IntVal: 8080},
+						Port:   intstr.FromInt(8080),
 					},
 				},
 			},
 			&PodInfo{IP: "192.168.8.8"},
+		},
+		{
+			"http probe with string port",
+			v1.Probe{
+				Handler: v1.Handler{
+					HTTPGet: &v1.HTTPGetAction{
+						Scheme: "http",
+						Path:   "/ping",
+						Port:   intstr.FromString("http-8080"),
+					},
+				},
+			},
+			&PodInfo{
+				IP: "192.168.8.8",
+				Containers: []v1.Container{
+					{
+						Name: "ctr",
+						Ports: []v1.ContainerPort{
+							{
+								Name:          "http-8080",
+								ContainerPort: 8080,
+							},
+						},
+					},
+				},
+			},
 		},
 		{
 			"tcp probe",
@@ -118,7 +144,7 @@ func TestProbeToConsulCheck(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		check := tc.pod.probeToConsulCheck(&tc.probe, "Liveness Probe")
+		check := tc.pod.probeToConsulCheck("ctr", &tc.probe, "Liveness Probe")
 
 		if check.Name != "Liveness Probe" {
 			if tc.probe.Exec == nil {
@@ -146,7 +172,7 @@ func TestEmptyNoChecks(t *testing.T) {
 	emptyCheck := consulapi.AgentServiceCheck{}
 	podInfo := &PodInfo{IP: "192.168.8.8"}
 
-	noProbeCheck := podInfo.probeToConsulCheck(nil, "Liveness Probe")
+	noProbeCheck := podInfo.probeToConsulCheck("ctr", nil, "Liveness Probe")
 
 	assert.Equal(t, emptyCheck, *noProbeCheck)
 }

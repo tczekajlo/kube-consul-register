@@ -19,6 +19,7 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/pkg/types"
+	"k8s.io/client-go/pkg/util/intstr"
 	"k8s.io/client-go/tools/cache"
 
 	consulapi "github.com/hashicorp/consul/api"
@@ -462,14 +463,14 @@ func (p *PodInfo) PodToConsulService(containerStatus v1.ContainerStatus, cfg *co
 	if p.isProbeLivenessEnabled() {
 		ctrLivenessProbe := p.getContainerLivenessProbe(containerStatus.Name)
 		if ctrLivenessProbe != nil {
-			service.Checks = append(service.Checks, p.probeToConsulCheck(ctrLivenessProbe, "Liveness Probe"))
+			service.Checks = append(service.Checks, p.probeToConsulCheck(containerStatus.Name, ctrLivenessProbe, "Liveness Probe"))
 		}
 
 	}
 	if p.isProbeReadinessEnabled() {
 		ctrReadinessProbe := p.getContainerReadinessProbe(containerStatus.Name)
 		if ctrReadinessProbe != nil {
-			service.Checks = append(service.Checks, p.probeToConsulCheck(ctrReadinessProbe, "Readiness Probe"))
+			service.Checks = append(service.Checks, p.probeToConsulCheck(containerStatus.Name, ctrReadinessProbe, "Readiness Probe"))
 		}
 	}
 
@@ -547,7 +548,7 @@ func (p *PodInfo) expectedContainerNames(containerName string) bool {
 	return false
 }
 
-func (p *PodInfo) probeToConsulCheck(probe *v1.Probe, probeName string) *consulapi.AgentServiceCheck {
+func (p *PodInfo) probeToConsulCheck(searchContainer string, probe *v1.Probe, probeName string) *consulapi.AgentServiceCheck {
 	check := &consulapi.AgentServiceCheck{}
 
 	if probe == nil {
@@ -569,9 +570,17 @@ func (p *PodInfo) probeToConsulCheck(probe *v1.Probe, probeName string) *consula
 		if probe.Handler.HTTPGet.Host != "" {
 			host = probe.Handler.HTTPGet.Host
 		}
-		check.HTTP = fmt.Sprintf("%s://%s:%d%s", probe.Handler.HTTPGet.Scheme, host, probe.Handler.HTTPGet.Port.IntVal, probe.Handler.HTTPGet.Path)
+
+		port, err := p.getPort(searchContainer, probe.Handler.HTTPGet.Port)
+		if err == nil {
+			check.HTTP = fmt.Sprintf("%s://%s:%d%s", probe.Handler.HTTPGet.Scheme, host, port, probe.Handler.HTTPGet.Path)
+		}
+
 	} else if probe.Handler.TCPSocket != nil {
-		check.TCP = fmt.Sprintf("%s:%d", host, probe.Handler.TCPSocket.Port.IntVal)
+		port, err := p.getPort(searchContainer, probe.Handler.TCPSocket.Port)
+		if err == nil {
+			check.TCP = fmt.Sprintf("%s:%d", host, port)
+		}
 	} else {
 		glog.V(3).Infof("Tried to find '%s', but no http/tcp probe found: #%s", probeName, probe.Handler.String())
 		return check
@@ -654,4 +663,32 @@ func (p *PodInfo) getReference() (v1.SerializedReference, bool) {
 		return sr, false
 	}
 	return sr, true
+}
+
+// this acts as a resolver for the "port" referenced in a probe.
+//
+// the way this works is, if the probe port is already an "int", it will exit early.
+//
+// otherwise, it starts iterating through the pod's containers (using
+// `searchContainer`) in order to find the port by its name (string) reference.
+func (p *PodInfo) getPort(searchContainer string, portDef intstr.IntOrString) (int, error) {
+	if portDef.Type == intstr.Int {
+		return portDef.IntValue(), nil
+	}
+
+	for _, container := range p.Containers {
+		if container.Name == searchContainer {
+			if len(container.Ports) > 0 {
+				for _, ctrPort := range container.Ports {
+					if ctrPort.Name == portDef.String() {
+						return int(ctrPort.ContainerPort), nil
+					}
+				}
+			}
+		}
+	}
+
+	glog.Errorf("unable to find/resolve port (%s): not adding a check", portDef.String())
+
+	return 0, fmt.Errorf("unable to find/resolve port (%s): not adding a check", portDef.String())
 }
