@@ -460,10 +460,17 @@ func (p *PodInfo) PodToConsulService(containerStatus v1.ContainerStatus, cfg *co
 	)
 
 	if p.isProbeLivenessEnabled() {
-		service.Checks = append(service.Checks, p.probeToConsulCheck(p.getContainerLivenessProbe(containerStatus.Name), "Liveness Probe"))
+		ctrLivenessProbe := p.getContainerLivenessProbe(containerStatus.Name)
+		if ctrLivenessProbe != nil {
+			service.Checks = append(service.Checks, p.probeToConsulCheck(ctrLivenessProbe, "Liveness Probe"))
+		}
+
 	}
 	if p.isProbeReadinessEnabled() {
-		service.Checks = append(service.Checks, p.probeToConsulCheck(p.getContainerReadinessProbe(containerStatus.Name), "Readiness Probe"))
+		ctrReadinessProbe := p.getContainerReadinessProbe(containerStatus.Name)
+		if ctrReadinessProbe != nil {
+			service.Checks = append(service.Checks, p.probeToConsulCheck(ctrReadinessProbe, "Readiness Probe"))
+		}
 	}
 
 	return service, nil

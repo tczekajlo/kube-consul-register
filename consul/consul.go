@@ -97,18 +97,10 @@ func (c *Adapter) New(cfg *config.Config, podNodeName string, podIP string) *Ada
 // Register registers new service in Consul
 func (c *Adapter) Register(service *consulapi.AgentServiceRegistration) error {
 	glog.V(1).Infof("Registering service %s with ID: %s", service.Name, service.ID)
-
-	glog.V(3).Infof("Address: %s:%d", service.Address, service.Port)
-
-	glog.V(3).Infof("Checks (total): %d", len(service.Checks))
+	glog.V(4).Infof("Checks (total): %d", len(service.Checks))
 
 	for _, check := range service.Checks {
-		// FIXME: i think this is better with level=4
-		glog.V(3).Infof("Check ID: %s", check.CheckID)
-		glog.V(3).Infof("Check (HTTP): %s", check.HTTP)
-		glog.V(3).Infof("Check (SHELL): %s", check.Shell)
-		glog.V(3).Infof("Check (TCP): %s", check.TCP)
-		glog.V(3).Infof("Check (all fields) %#v", check)
+		glog.V(4).Infof("Check: %#v", check)
 	}
 
 	return c.client.Agent().ServiceRegister(service)
