@@ -42,4 +42,3 @@ rules:
     - "nodes"
     - "endpoints"
   verbs: ["get", "list", "watch"]
----
