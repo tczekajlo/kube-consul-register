@@ -197,6 +197,7 @@ func (c *Controller) Sync() error {
 				if _, ok := addedConsulServices[serviceConsulID]; !ok {
 					err := c.eventAddFunc(&service)
 					if err != nil {
+						c.mutex.Unlock()
 						return err
 					}
 				}
@@ -204,6 +205,7 @@ func (c *Controller) Sync() error {
 		} else {
 			err := c.eventAddFunc(&service)
 			if err != nil {
+				c.mutex.Unlock()
 				return err
 			}
 		}
