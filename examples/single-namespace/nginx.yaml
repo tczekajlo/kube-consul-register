@@ -4,8 +4,8 @@ metadata:
   labels:
     run: nginx
   name: nginx
-  spec:
-  replicas: 1
+spec:
+  replicas: 3
   selector:
     matchLabels:
       run: nginx
@@ -18,11 +18,10 @@ metadata:
     metadata:
       labels:
         run: nginx
-        production: tag # Would create `production` tag for service `nginx`. Instead of `production:tag`.
+        production: "tag" # Would create `production` tag for service `nginx`. Instead of `production:tag`.
       annotations:
         consul.register/enabled: "true"
-        consul.register/pod.container.name: "nginx" # Container name which will be taken into account.
-        #consul.register/service.name: "mynginx"
+        consul.register/service.name: "nginx"
     spec:
       containers:
       - image: nginx
@@ -36,16 +35,5 @@ metadata:
           periodSeconds: 3
         ports:
         - containerPort: 80
-      - image: gcr.io/google_containers/echoserver:1.4
-        imagePullPolicy: Always
-        name: echoserver
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 8080
-          initialDelaySeconds: 3
-          periodSeconds: 3
-        ports:
-        - containerPort: 8080
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

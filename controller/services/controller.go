@@ -74,7 +74,7 @@ func (c *Controller) cacheConsulAgent() (map[string]*consul.Adapter, error) {
 			consulAgents[node.ObjectMeta.Name] = consulAgent
 		}
 	} else if c.cfg.Controller.RegisterMode == config.RegisterPodMode {
-		pods, err := c.clientset.CoreV1().Pods("").List(v1.ListOptions{
+		pods, err := c.clientset.CoreV1().Pods(c.namespace).List(v1.ListOptions{
 			LabelSelector: c.cfg.Controller.PodLabelSelector,
 		})
 		if err != nil {
@@ -268,7 +268,9 @@ func (c *Controller) nodeDelete(obj interface{}) error {
 
 // Watch watches events in K8S cluster
 func (c *Controller) Watch() {
-	go c.watchNodes()
+	if c.cfg.Controller.RegisterMode == config.RegisterNodeMode {
+		go c.watchNodes()
+	}
 	go c.watchServices()
 }
 
@@ -500,6 +502,8 @@ func (c *Controller) getNodesIPs() ([]string, error) {
 	var listOptions v1.ListOptions
 	if c.cfg.Controller.RegisterMode == config.RegisterNodeMode {
 		listOptions.LabelSelector = c.cfg.Controller.ConsulNodeSelector
+	}else{
+		return nil, nil
 	}
 	nodes, err := c.clientset.CoreV1().Nodes().List(listOptions)
 	if err != nil {
