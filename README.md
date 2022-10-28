@@ -14,7 +14,7 @@ kube-consul-register watches Kubernetes events and converts information about PO
   -consul-secret string
         name of the secret containing the consul token, e.g. default/consul. Key must be consul_token
   -in-cluster
-        use in-cluster config. Use always in case when controller is running on Kubernetes cluster (default true)
+        use in-cluster config. Use always in case when controller is running on Kubernetes cluster (default false)
   -kubeconfig string
         absolute path to the kubeconfig file (default "./kubeconfig")
   -log_backtrace_at value

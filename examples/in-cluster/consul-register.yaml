@@ -20,6 +20,7 @@ spec:
         args:
         - -logtostderr=true
         - -configmap=default/kube-consul-register
+        - -in-cluster=true
   selector:
     matchLabels:
       app: kube-consul-register
